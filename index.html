@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>paw — Learning Plan & Hub</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/kjua@0.9.0/dist/kjua.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#f3f1ea; --ink:#0f172a; --paper:#ffffff;
+  --amber:#f6c453; --indigo:#6366f1; --pink:#ec4899;
+  --line:#e7e3d6;
+}
+*{box-sizing:border-box;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:#2d3748;}
+.serif{font-family:'Playfair Display',serif;}
+.no-scrollbar::-webkit-scrollbar{display:none;}
+.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none;}
+.dei-card{background:#fff;border-radius:24px;box-shadow:0 4px 20px -2px rgba(0,0,0,.04);}
+.modal-backdrop{background:rgba(15,23,42,.45);backdrop-filter:blur(4px);}
+.note-card{border-left:4px solid var(--amber);}
+
+/* ===== Dock Navbar (desktop) ===== */
+.dock-nav{
+  background:var(--ink);
+  border-radius:9999px;
+  padding:6px;
+  display:flex;
+  align-items:center;
+  gap:2px;
+  box-shadow:0 10px 30px -8px rgba(15,23,42,.45);
+}
+.dock-item{
+  position:relative;
+  display:flex; align-items:center; gap:8px;
+  padding:10px 16px;
+  border-radius:9999px;
+  font-size:12px; font-weight:700;
+  color:rgba(255,255,255,.55);
+  transition:color .25s ease;
+  white-space:nowrap;
+  z-index:2;
+}
+.dock-item.active{color:var(--ink);}
+.dock-item .dock-ico{font-size:13px;}
+.dock-pill{
+  position:absolute; top:6px; bottom:6px; left:6px;
+  width:0; border-radius:9999px;
+  background:var(--amber);
+  transition:transform .35s cubic-bezier(.65,0,.35,1), width .35s cubic-bezier(.65,0,.35,1);
+  z-index:1;
+}
+
+/* ===== Pagination ===== */
+.pg-btn{
+  width:32px;height:32px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;
+  background:#fff;border:1px solid var(--line);color:#64748b;
+  transition:all .15s ease;
+}
+.pg-btn:hover:not(:disabled){border-color:var(--ink);color:var(--ink);}
+.pg-btn:disabled{opacity:.35;cursor:not-allowed;}
+.pg-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+/* ===== Learning: gradient stat cards ===== */
+.plan-card{
+  position:relative; border-radius:26px; padding:20px;
+  min-height:150px; color:#fff; overflow:hidden;
+  display:flex; flex-direction:column; justify-content:space-between;
+  cursor:pointer; transition:transform .2s ease;
+}
+.plan-card:hover{transform:translateY(-4px);}
+.plan-card .icon-badge{
+  width:34px;height:34px;border-radius:12px;
+  background:rgba(255,255,255,.22);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px; backdrop-filter:blur(4px);
+}
+.plan-progress-track{height:6px;border-radius:99px;background:rgba(255,255,255,.28);overflow:hidden;}
+.plan-progress-fill{height:100%;border-radius:99px;background:#fff;}
+.plan-card::after{
+  content:'';position:absolute;right:-30px;bottom:-30px;
+  width:120px;height:120px;border-radius:9999px;
+  background:rgba(255,255,255,.08);
+}
+
+/* Hex nodes on path view */
+.hex-node{
+  width:84px;height:84px;
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:transform .15s ease;
+}
+.hex-node:hover{transform:scale(1.06);}
+.path-line{position:absolute;top:0;bottom:0;left:50%;width:3px;transform:translateX(-50%);
+  background-image:repeating-linear-gradient(to bottom,#d6d3c4 0,#d6d3c4 8px,transparent 8px,transparent 16px);z-index:0;}
+
+/* ===== Peers: calendar-style cards + leaderboard ===== */
+.peer-day-card{
+  border-radius:24px; background:#fff; padding:18px 16px 16px;
+  border:1px solid var(--line);
+  transition:transform .15s ease, box-shadow .15s ease;
+  cursor:default;
+  position:relative;
+  overflow:visible;
+}
+.peer-day-card:hover{transform:translateY(-3px);box-shadow:0 14px 28px -10px rgba(0,0,0,.14);}
+.peer-date-chip{font-size:10px;font-weight:800;color:#94a3b8;line-height:1.15;}
+.peer-date-chip .day-num{display:block;font-size:22px;font-weight:800;color:var(--ink);line-height:1.1;}
+.peer-avatar-wrap{
+  position:absolute; top:-16px; right:14px;
+  width:64px;height:64px;border-radius:20px;
+  overflow:hidden; background:#f1f0ea;
+  box-shadow:0 6px 14px -4px rgba(0,0,0,.25);
+  border:3px solid #fff;
+}
+.peer-avatar-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
+.peer-avatar-fallback{
+  width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:20px;color:#fff;
+}
+.peer-topic-pill{border-radius:16px;padding:10px 12px;margin-top:12px;}
+.peer-wave{display:flex;align-items:flex-end;gap:2px;height:16px;opacity:.55;}
+.peer-wave span{width:2.5px;border-radius:2px;background:currentColor;display:block;}
+.lb-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:14px;}
+.lb-rank{
+  width:22px;height:22px;border-radius:9999px;background:#f1f0ea;color:#64748b;
+  font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.lb-rank.gold{background:var(--amber);color:var(--ink);}
+.lb-bar-track{height:5px;border-radius:99px;background:#eee;overflow:hidden;margin-top:3px;}
+.lb-bar-fill{height:100%;border-radius:99px;background:var(--indigo);}
+
+/* ===== Books: illustrated spine covers ===== */
+.book-cover{
+  position:relative;width:100%;aspect-ratio:3/4.3;
+  border-radius:4px 12px 12px 4px;cursor:pointer;overflow:visible;
+  display:flex;flex-direction:column;justify-content:space-between;
+  padding:14px 12px 18px;margin-bottom:12px;
+  box-shadow:12px 14px 24px -4px rgba(0,0,0,.35);
+}
+.book-cover::before{
+  content:'';position:absolute;top:4px;bottom:-8px;right:-8px;left:6px;
+  background:#f4efe6;
+  background-image:repeating-linear-gradient(to right,#f4efe6 0px,#f4efe6 2px,#d6cebe 2px,#d6cebe 3px);
+  border-radius:0 8px 8px 0;z-index:-1;box-shadow:inset -2px -2px 4px rgba(0,0,0,.15);
+}
+.book-cover::after{
+  content:'';position:absolute;top:0;bottom:-12px;right:-12px;left:-2px;
+  background:inherit;border-radius:4px 14px 14px 4px;z-index:-2;
+  box-shadow:4px 4px 10px rgba(0,0,0,.25);
+}
+.book-monogram{
+  position:absolute;right:-6px;bottom:-18px;font-family:'Playfair Display',serif;
+  font-style:italic;font-weight:700;font-size:92px;color:rgba(255,255,255,.14);
+  line-height:1;pointer-events:none;user-select:none;
+}
+.book-title-cover{
+  font-family:'Playfair Display',serif;font-weight:800;color:#fff;font-size:26px;line-height:1.2;
+  text-shadow:0 1px 4px rgba(0,0,0,.35);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;
+  overflow:hidden;position:relative;z-index:1;
+}
+.book-author-cover{font-size:10px;font-weight:600;color:rgba(255,255,255,.85);letter-spacing:.02em;position:relative;z-index:1;}
+.book-ribbon{
+  position:absolute;left:16px;bottom:-7px;width:16px;height:24px;background:var(--amber);
+  clip-path:polygon(0 0,100% 0,100% 100%,50% 78%,0 100%);box-shadow:0 2px 3px rgba(0,0,0,.25);z-index:2;
+}
+/* cloth/linen texture overlay for hardcover look */
+.book-texture{
+  position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E"),
+    linear-gradient(115deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 30%, rgba(0,0,0,.10) 70%, rgba(0,0,0,0) 100%);
+  background-size:60px 60px, cover;
+  mix-blend-mode:overlay;
+  opacity:.55;
+}
+.book-spine-hl{
+  position:absolute;left:0;top:0;bottom:0;width:10px;z-index:0;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(to right, rgba(255,255,255,.35), rgba(255,255,255,0));
+}
+.book-cover-vignette{
+  position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;
+  box-shadow:inset 0 0 26px rgba(0,0,0,.28), inset 0 -18px 24px -14px rgba(0,0,0,.35);
+}
+.book-title-cover{ letter-spacing:.01em; }
+.book-rule{
+  position:relative;z-index:1;width:26px;height:2px;background:rgba(255,255,255,.55);
+  margin-top:6px;border-radius:2px;
+}
+
+.card-actions{opacity:0;transition:opacity .15s ease;}
+.group:hover .card-actions{opacity:1;}
+.icon-btn{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;background:rgba(255,255,255,.95);box-shadow:0 2px 6px rgba(0,0,0,.15);}
+.swatch{width:26px;height:26px;border-radius:8px;cursor:pointer;border:2px solid transparent;}
+.swatch.selected{border-color:var(--ink);transform:scale(1.1);}
+.emoji-swatch{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;background:#f8f7f2;border:2px solid transparent;transition:transform .12s ease;}
+.emoji-swatch:hover{transform:translateY(-2px);}
+.emoji-swatch.selected{border-color:var(--ink);background:#fff;}
+.color-dot{width:34px;height:34px;border-radius:9999px;cursor:pointer;border:3px solid transparent;}
+.color-dot.selected{border-color:var(--ink);}
+
+/* Profile page */
+.profile-hero{
+  border-radius:28px;padding:32px;color:#fff;position:relative;overflow:hidden;
+  background:radial-gradient(120% 140% at 15% 0%, #4338ca 0%, #0f172a 55%);
+}
+.profile-hero::after{content:'';position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:9999px;background:rgba(246,196,83,.15);}
+.profile-avatar-lg{width:88px;height:88px;border-radius:24px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:30px;}
+.stat-pill{background:rgba(255,255,255,.1);border-radius:16px;padding:12px 16px;backdrop-filter:blur(4px);}
+
+/* ===== Chat Cepat ===== */
+#chatcepat-toggle{transition:transform .15s ease;}
+#chatcepat-toggle:hover{transform:scale(1.06);}
+#chatcepat-panel{max-height:min(560px,72vh);}
+@media (max-width:767px){
+  #chatcepat-toggle{bottom:84px !important;}
+  #chatcepat-panel{bottom:156px !important;right:14px !important;}
+}
+.cc-bubble-user{margin-left:auto;max-width:85%;background:var(--ink);color:#fff;font-size:11.5px;line-height:1.45;border-radius:16px 16px 4px 16px;padding:10px 12px;white-space:pre-wrap;}
+.cc-bubble-assistant{margin-right:auto;max-width:85%;background:#f1f0ea;color:#334155;font-size:11.5px;line-height:1.5;border-radius:16px 16px 16px 4px;padding:10px 12px;white-space:pre-wrap;}
+.cc-bubble-assistant.cc-loading{color:#94a3b8;font-style:italic;}
+</style>
+</head>
+<body class="pb-28 md:pb-10 pt-4 md:pt-6">
+
+<!-- TOP HEADER -->
+<header class="max-w-6xl mx-auto px-4 mb-6 flex items-center justify-between">
+  <div class="flex items-center space-x-2">
+    <div class="w-10 h-10 bg-slate-900 rounded-2xl flex items-center justify-center text-white font-extrabold text-lg">Paw</div>
+  </div>
+
+  <nav class="hidden md:flex dock-nav relative">
+    <div id="dock-pill" class="dock-pill"></div>
+    <button onclick="navTo('learning')" data-dock="learning" class="dock-item"><i class="fa-solid fa-graduation-cap dock-ico"></i> Learning Plan</button>
+    <button onclick="navTo('network')" data-dock="network" class="dock-item"><i class="fa-solid fa-user-group dock-ico"></i> Peers</button>
+    <button onclick="navTo('books')" data-dock="books" class="dock-item"><i class="fa-solid fa-book dock-ico"></i> Bedah Buku</button>
+    <button onclick="navTo('profile')" data-dock="profile" class="dock-item"><i class="fa-solid fa-id-card dock-ico"></i> Profil</button>
+  </nav>
+
+  <div class="flex items-center space-x-3">
+    <button onclick="openJsonExportModal()" class="bg-amber-300 hover:bg-amber-400 text-slate-900 px-3.5 py-2 rounded-2xl font-bold text-xs flex items-center gap-2 shadow-sm transition">
+      <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Export JSON</span>
+    </button>
+    <button onclick="navTo('profile')" class="flex items-center space-x-2 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200/60">
+      <div id="header-avatar" class="w-8 h-8 rounded-xl bg-purple-200 text-purple-800 font-bold flex items-center justify-center text-xs">MH</div>
+      <span id="header-name" class="text-xs font-bold text-slate-700 hidden lg:inline pr-2">Moch Hilmy</span>
+    </button>
+  </div>
+</header>
+
+<!-- SEARCH OVERLAY -->
+<div id="search-results-panel" class="hidden fixed inset-x-0 top-16 bottom-20 md:bottom-0 bg-white/95 backdrop-blur-md z-50 p-6 overflow-y-auto">
+  <div class="max-w-2xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Hasil Pencarian Database</h3>
+      <button onclick="toggleMobileSearch(false)" class="text-slate-400 text-sm"><i class="fa-solid fa-xmark"></i> Tutup</button>
+    </div>
+    <div id="search-results-list" class="space-y-3"></div>
+  </div>
+</div>
+
+<main class="max-w-6xl mx-auto px-4">
+
+  <!-- ================= PAGE 1: LEARNING PLAN ================= -->
+  <section id="page-learning" class="page-content">
+    <div id="view-plan-list">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div>
+          <h1 class="text-2xl font-extrabold text-slate-900 flex items-center gap-2">My Learning Plan <span class="text-xl">🎓</span></h1>
+          <p class="text-xs text-slate-500 mt-1">Kumpulan rencana belajar & progres topik</p>
+        </div>
+        <div class="flex items-center gap-3 w-full md:w-auto">
+          <div class="relative flex-1 md:w-72">
+            <input type="text" oninput="handleSearch(this.value)" placeholder="Cari di semua data..." class="w-full bg-white text-xs rounded-2xl pl-9 pr-4 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 shadow-sm">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+          </div>
+          <button onclick="openAddPlanModal()" class="bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-2xl hover:bg-slate-800 transition whitespace-nowrap">+ Tambah Learning Plan</button>
+        </div>
+      </div>
+
+      <div id="plan-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5"></div>
+      <div id="plan-pagination" class="flex justify-center items-center gap-1.5 mt-6"></div>
+    </div>
+
+    <div id="view-path" class="hidden">
+      <div class="flex items-center justify-between mb-6 gap-3">
+        <div class="flex items-center gap-3">
+          <button onclick="showPlanList()" class="w-9 h-9 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-500 hover:text-slate-900"><i class="fa-solid fa-arrow-left text-xs"></i></button>
+          <div>
+            <h1 id="path-view-title" class="text-xl font-extrabold text-slate-900"></h1>
+            <p id="path-view-desc" class="text-xs text-slate-500 mt-0.5"></p>
+          </div>
+        </div>
+        <button onclick="openAddNodeModal()" class="bg-slate-900 text-white text-xs font-bold px-3.5 py-2 rounded-xl hover:bg-slate-800 transition whitespace-nowrap">+ Tambah Topik</button>
+      </div>
+      <div class="dei-card p-8 border border-slate-200/60">
+        <div id="hex-path-container" class="relative flex flex-col items-center gap-10 py-4"></div>
+      </div>
+      <div id="node-pagination" class="flex justify-center items-center gap-1.5 mt-6"></div>
+    </div>
+  </section>
+
+  <!-- ================= PAGE 2: PEERS ================= -->
+  <section id="page-network" class="page-content hidden">
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h1 class="text-2xl font-extrabold text-slate-900 flex items-center gap-2">My Peers <span class="text-xl">🎓</span></h1>
+        <p class="text-xs text-slate-500 mt-1">Jaringan relasi & diskusi profesional</p>
+      </div>
+      <button onclick="navTo('profile')" class="bg-slate-900 text-white text-xs font-bold px-3 py-2 rounded-xl">+ Input / Scan QR</button>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+      <div>
+        <div id="network-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+        <div id="network-pagination" class="flex justify-center items-center gap-1.5 mt-6"></div>
+      </div>
+      <div class="dei-card p-5 border border-slate-200/60 h-fit">
+        <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2 mb-4">Leaderboard <span>🏆</span></h3>
+        <div id="leaderboard-list" class="space-y-1.5"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PAGE 3: BEDAH BUKU ================= -->
+  <section id="page-books" class="page-content hidden">
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h1 class="text-2xl font-extrabold text-slate-900 flex items-center gap-2">Book Breakdown <span class="text-xl">📚</span></h1>
+        <p class="text-xs text-slate-500 mt-1">Klik cover untuk lihat penulis & catatanmu</p>
+      </div>
+      <button onclick="openAddBookModal()" class="bg-slate-900 text-white text-xs font-bold px-3 py-2 rounded-xl">+ Tambah Buku</button>
+    </div>
+    <div id="books-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6"></div>
+    <div id="books-pagination" class="flex justify-center items-center gap-1.5 mt-6"></div>
+  </section>
+
+  <!-- ================= PAGE 4: PROFIL ================= -->
+  <section id="page-profile" class="page-content hidden">
+    <div class="mb-6">
+      <h1 class="text-2xl font-extrabold text-slate-900">Profil & Koneksi QR</h1>
+      <p class="text-xs text-slate-500">Identitas digital & pemindai relasi</p>
+    </div>
+
+    <div class="profile-hero mb-6">
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div class="flex items-center gap-5">
+          <div id="profile-avatar-lg" class="profile-avatar-lg bg-amber-300 text-slate-900">M</div>
+          <div>
+            <h2 id="profile-name" class="serif font-extrabold text-2xl">Moch Hilmy Fawwaz</h2>
+            <p id="profile-role" class="text-xs text-white/70 mt-1">System Architect & Developer</p>
+            <button onclick="openEditProfileModal()" class="mt-3 bg-white/15 hover:bg-white/25 text-white text-[11px] font-bold px-3.5 py-2 rounded-xl transition inline-flex items-center gap-2">
+              <i class="fa-solid fa-pen text-[10px]"></i> Edit Profil
+            </button>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <div class="stat-pill text-center">
+            <p class="text-lg font-extrabold" id="stat-plans">0</p>
+            <p class="text-[9px] uppercase tracking-wider text-white/60 font-bold">Plans</p>
+          </div>
+          <div class="stat-pill text-center">
+            <p class="text-lg font-extrabold" id="stat-books">0</p>
+            <p class="text-[9px] uppercase tracking-wider text-white/60 font-bold">Buku</p>
+          </div>
+          <div class="stat-pill text-center">
+            <p class="text-lg font-extrabold" id="stat-peers">0</p>
+            <p class="text-[9px] uppercase tracking-wider text-white/60 font-bold">Peers</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="dei-card p-6 border border-slate-200/60 text-center flex flex-col items-center">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-4">Tunjukkan QR Ini Ke Rekan</p>
+        <div class="bg-white p-4 rounded-3xl border-2 border-slate-100 shadow-sm inline-block">
+          <div id="qr-container" class="flex justify-center items-center" style="width:220px;height:220px;"></div>
+        </div>
+        <p id="qr-fallback-note" class="hidden text-[10px] text-red-500 font-semibold mt-3">QR tidak dapat dimuat. Coba muat ulang halaman.</p>
+        <p class="text-[10px] text-slate-400 mt-4">Rekan bisa scan QR ini untuk otomatis tersimpan sebagai relasi.</p>
+      </div>
+
+      <div class="dei-card p-6 border border-slate-200/60">
+        <h3 class="font-bold text-sm mb-4 text-slate-800">Tambah Relasi Baru</h3>
+        <div class="flex gap-2 mb-4 bg-slate-100 p-1 rounded-2xl">
+          <button onclick="switchRelTab('manual')" id="btn-rel-manual" class="flex-1 py-2 text-xs font-bold rounded-xl bg-white text-slate-900 shadow-sm">Input Manual</button>
+          <button onclick="switchRelTab('scan')" id="btn-rel-scan" class="flex-1 py-2 text-xs font-bold rounded-xl text-slate-500">Scan QR Code</button>
+        </div>
+
+        <form id="form-manual-rel" onsubmit="saveRelation(event)" class="space-y-3">
+          <div>
+            <label class="text-[11px] text-slate-500 font-semibold">Nama Lengkap</label>
+            <input type="text" id="input-rel-name" required class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-500 font-semibold">Peran / Jabatan</label>
+            <input type="text" id="input-rel-role" required class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-500 font-semibold">Topik Diskusi Utama</label>
+            <input type="text" id="input-rel-topic" required placeholder="misal: Flutter, AI Architecture" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-[11px] text-slate-500 font-semibold">Tanggal Bertemu</label>
+              <input type="date" id="input-rel-date" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-500 font-semibold">Durasi Diskusi</label>
+              <input type="text" id="input-rel-duration" placeholder="misal: 30 min" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+            </div>
+          </div>
+          <button type="submit" class="w-full bg-slate-900 text-white text-xs font-bold py-3 rounded-xl shadow-sm hover:bg-slate-800 transition">Simpan Relasi</button>
+        </form>
+
+        <div id="box-scan-rel" class="hidden">
+          <div id="reader" class="w-full rounded-2xl overflow-hidden border border-slate-200"></div>
+          <p class="text-[10px] text-slate-400 text-center mt-2">Izinkan kamera untuk membaca QR rekan</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="md:hidden fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-lg border-t border-slate-200/60 z-40 px-6 py-2 flex justify-between items-center">
+  <button onclick="navTo('learning')" id="mb-nav-learning" class="flex flex-col items-center text-slate-900"><i class="fa-solid fa-graduation-cap text-base"></i><span class="text-[9px] font-bold mt-1">Plan</span></button>
+  <button onclick="navTo('network')" id="mb-nav-network" class="flex flex-col items-center text-slate-400"><i class="fa-solid fa-user-group text-base"></i><span class="text-[9px] font-bold mt-1">Peers</span></button>
+  <button onclick="toggleMobileSearch(true)" class="w-12 h-12 bg-indigo-600 text-white rounded-full flex items-center justify-center -mt-6 shadow-lg border-4 border-f3f1ea"><i class="fa-solid fa-magnifying-glass text-base"></i></button>
+  <button onclick="navTo('books')" id="mb-nav-books" class="flex flex-col items-center text-slate-400"><i class="fa-solid fa-book text-base"></i><span class="text-[9px] font-bold mt-1">Buku</span></button>
+  <button onclick="navTo('profile')" id="mb-nav-profile" class="flex flex-col items-center text-slate-400"><i class="fa-solid fa-id-card text-base"></i><span class="text-[9px] font-bold mt-1">Profil</span></button>
+</nav>
+
+<!-- ============ MODALS ============ -->
+
+<div id="modal-json-export" class="hidden fixed inset-0 modal-backdrop z-[60] flex items-center justify-center p-4">
+  <div class="dei-card p-6 max-w-lg w-full bg-white border border-slate-200">
+    <div class="flex justify-between items-center mb-3">
+      <h3 class="font-bold text-sm text-slate-900">Export JSON Data</h3>
+      <button onclick="closeModal('modal-json-export')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <p class="text-xs text-slate-500 mb-3">Salin kode JSON di bawah ini lalu tempelkan ke file <code class="bg-slate-100 text-pink-600 px-1 py-0.5 rounded">data.json</code> pada repository GitHub-mu.</p>
+    <textarea id="json-preview-area" readonly class="w-full h-48 bg-slate-900 text-emerald-400 font-mono text-[11px] p-3 rounded-xl mb-4 focus:outline-none"></textarea>
+    <div class="flex gap-2">
+      <button onclick="copyJsonToClipboard()" class="flex-1 bg-slate-900 text-white text-xs font-bold py-2.5 rounded-xl"><i class="fa-solid fa-copy mr-1"></i> Copy JSON</button>
+      <button onclick="downloadJsonFile()" class="flex-1 bg-amber-300 text-slate-900 text-xs font-bold py-2.5 rounded-xl"><i class="fa-solid fa-file-arrow-down mr-1"></i> Download .json</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-add-plan" class="hidden fixed inset-0 modal-backdrop z-[60] flex items-center justify-center p-4">
+  <div class="dei-card p-6 max-w-md w-full bg-white border border-slate-200">
+    <div class="flex justify-between items-center mb-4">
+      <h3 id="plan-modal-heading" class="font-bold text-sm text-slate-900">Tambah Learning Plan</h3>
+      <button onclick="closeModal('modal-add-plan')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="saveNewPlan(event)" class="space-y-3">
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Judul Learning Plan</label>
+        <input type="text" id="plan-title" required placeholder="misal: Nursing Fundamentals" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Deskripsi Singkat</label>
+        <textarea id="plan-desc" rows="2" placeholder="Tentang apa rencana belajar ini" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900"></textarea>
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Pilih Ikon (Emoji)</label>
+        <input type="text" id="plan-icon" maxlength="4" placeholder="misal: 📘" oninput="pickPlanIcon(this.value)" class="w-full bg-slate-50 border border-slate-200 text-sm rounded-xl p-2.5 mt-1 mb-2 text-center focus:outline-none focus:ring-2 focus:ring-slate-900">
+        <div id="plan-icon-swatches" class="flex flex-wrap gap-2"></div>
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Warna Kartu</label>
+        <div id="plan-color-swatches" class="flex flex-wrap gap-2 mt-2"></div>
+        <input type="hidden" id="plan-color" value="#f59e0b">
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button type="button" id="plan-delete-btn" onclick="deletePlanFromModal()" class="hidden flex-1 bg-red-50 text-red-600 text-xs font-bold py-3 rounded-xl hover:bg-red-100 transition"><i class="fa-solid fa-trash mr-1"></i> Hapus</button>
+        <button type="submit" class="flex-1 bg-slate-900 text-white text-xs font-bold py-3 rounded-xl shadow-sm hover:bg-slate-800 transition">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="modal-add-node" class="hidden fixed inset-0 modal-backdrop z-[60] flex items-center justify-center p-4">
+  <div class="dei-card p-6 max-w-md w-full bg-white border border-slate-200">
+    <div class="flex justify-between items-center mb-4">
+      <h3 id="node-modal-heading" class="font-bold text-sm text-slate-900">Tambah Topik / Node</h3>
+      <button onclick="closeModal('modal-add-node')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="saveNewNode(event)" class="space-y-3">
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Judul Topik</label>
+        <input type="text" id="node-title" required placeholder="misal: Geometry" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Deskripsi Singkat</label>
+        <textarea id="node-desc" rows="2" placeholder="Ringkasan topik ini" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900"></textarea>
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Status</label>
+        <select id="node-status" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+          <option value="active">Active (sedang dipelajari)</option>
+          <option value="completed">Completed (sudah selesai)</option>
+          <option value="locked">Locked (belum dibuka)</option>
+        </select>
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button type="button" id="node-delete-btn" onclick="deleteNodeFromModal()" class="hidden flex-1 bg-red-50 text-red-600 text-xs font-bold py-3 rounded-xl hover:bg-red-100 transition"><i class="fa-solid fa-trash mr-1"></i> Hapus</button>
+        <button type="submit" class="flex-1 bg-slate-900 text-white text-xs font-bold py-3 rounded-xl shadow-sm hover:bg-slate-800 transition">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="modal-view-notes" class="hidden fixed inset-0 modal-backdrop z-[60] flex items-center justify-center p-4">
+  <div class="dei-card p-6 max-w-lg w-full bg-white border border-slate-200 max-h-[85vh] flex flex-col">
+    <div class="flex justify-between items-center mb-1">
+      <div>
+        <h3 id="notes-modal-title" class="font-bold text-sm text-slate-900">Catatan Topik</h3>
+        <p id="notes-modal-desc" class="text-[11px] text-slate-400"></p>
+      </div>
+      <button onclick="closeModal('modal-view-notes')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <button onclick="openAddNoteModal()" class="mt-3 mb-3 w-full bg-amber-300 hover:bg-amber-400 text-slate-900 text-xs font-bold py-2.5 rounded-xl transition">+ Tambah Catatan</button>
+    <div id="notes-list" class="space-y-3 overflow-y-auto pr-1 no-scrollbar mb-2"></div>
+    <div id="notes-pagination" class="flex justify-center items-center gap-1.5 pt-1"></div>
+  </div>
+</div>
+
+<div id="modal-add-note" class="hidden fixed inset-0 modal-backdrop z-[70] flex items-center justify-center p-4">
+  <div class="dei-card p-6 max-w-md w-full bg-white border border-slate-200">
+    <div class="flex justify-between items-center mb-4">
+      <h3 id="note-modal-heading" class="font-bold text-sm text-slate-900">Tambah Catatan Belajar</h3>
+      <button onclick="closeModal('modal-add-note')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="saveNewNote(event)" class="space-y-3">
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Judul Catatan</label>
+        <input type="text" id="note-title" required placeholder="misal: Rumus keliling & luas" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Isi Catatan</label>
+        <textarea id="note-content" rows="4" required placeholder="Tulis apa yang kamu pelajari..." class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900"></textarea>
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button type="button" id="note-delete-btn" onclick="deleteNoteFromModal()" class="hidden flex-1 bg-red-50 text-red-600 text-xs font-bold py-3 rounded-xl hover:bg-red-100 transition"><i class="fa-solid fa-trash mr-1"></i> Hapus</button>
+        <button type="submit" class="flex-1 bg-slate-900 text-white text-xs font-bold py-3 rounded-xl shadow-sm hover:bg-slate-800 transition">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="modal-add-book" class="hidden fixed inset-0 modal-backdrop z-[60] flex items-center justify-center p-4">
+  <div class="dei-card p-6 max-w-md w-full bg-white border border-slate-200">
+    <div class="flex justify-between items-center mb-4">
+      <h3 id="book-modal-heading" class="font-bold text-sm text-slate-900">Tambah Buku</h3>
+      <button onclick="closeModal('modal-add-book')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="saveNewBook(event)" class="space-y-3">
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Judul Buku</label>
+        <input type="text" id="book-title" required placeholder="misal: Atomic Habits" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Penulis</label>
+        <input type="text" id="book-author" placeholder="misal: James Clear" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Warna Cover</label>
+        <div id="book-color-swatches" class="flex flex-wrap gap-2 mt-2"></div>
+        <div class="flex items-center gap-2 mt-2">
+          <input type="color" id="book-color-custom" value="#6366f1" onchange="pickBookColor(this.value)" class="w-9 h-9 rounded-lg border border-slate-200 cursor-pointer p-0.5">
+          <span class="text-[10px] text-slate-400">atau pilih warna custom</span>
+        </div>
+        <input type="hidden" id="book-color" value="#6366f1">
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button type="button" id="book-delete-btn" onclick="deleteBookFromModal()" class="hidden flex-1 bg-red-50 text-red-600 text-xs font-bold py-3 rounded-xl hover:bg-red-100 transition"><i class="fa-solid fa-trash mr-1"></i> Hapus</button>
+        <button type="submit" class="flex-1 bg-slate-900 text-white text-xs font-bold py-3 rounded-xl shadow-sm hover:bg-slate-800 transition">Simpan Buku</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="modal-book-detail" class="hidden fixed inset-0 modal-backdrop z-[60] flex items-center justify-center p-4">
+  <div class="dei-card p-6 max-w-lg w-full bg-white border border-slate-200 max-h-[85vh] flex flex-col">
+    <div class="flex gap-4 mb-1">
+      <div id="book-detail-cover" class="w-16 shrink-0 book-cover !cursor-default"></div>
+      <div class="flex-1 min-w-0">
+        <div class="flex justify-between items-start">
+          <div>
+            <h3 id="book-detail-title" class="font-bold text-sm text-slate-900"></h3>
+            <p id="book-detail-author" class="text-[11px] text-slate-400 mt-0.5"></p>
+          </div>
+          <button onclick="closeModal('modal-book-detail')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+    </div>
+    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-4 mb-2">Catatan & Pengingat</p>
+    <button onclick="openAddBookNoteModal()" class="mb-3 w-full bg-amber-300 hover:bg-amber-400 text-slate-900 text-xs font-bold py-2.5 rounded-xl transition">+ Tambah Catatan / Pengingat</button>
+    <div id="book-notes-list" class="space-y-3 overflow-y-auto pr-1 no-scrollbar mb-2"></div>
+    <div id="book-notes-pagination" class="flex justify-center items-center gap-1.5 pt-1"></div>
+  </div>
+</div>
+
+<div id="modal-add-book-note" class="hidden fixed inset-0 modal-backdrop z-[70] flex items-center justify-center p-4">
+  <div class="dei-card p-6 max-w-md w-full bg-white border border-slate-200">
+    <div class="flex justify-between items-center mb-4">
+      <h3 id="book-note-modal-heading" class="font-bold text-sm text-slate-900">Tambah Catatan Buku</h3>
+      <button onclick="closeModal('modal-add-book-note')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="saveNewBookNote(event)" class="space-y-3">
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Judul</label>
+        <input type="text" id="book-note-title" required placeholder="misal: Poin penting bab 3" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Isi Catatan / Pengingat</label>
+        <textarea id="book-note-content" rows="4" required placeholder="Apa yang mau kamu ingat dari buku ini..." class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900"></textarea>
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button type="button" id="book-note-delete-btn" onclick="deleteBookNoteFromModal()" class="hidden flex-1 bg-red-50 text-red-600 text-xs font-bold py-3 rounded-xl hover:bg-red-100 transition"><i class="fa-solid fa-trash mr-1"></i> Hapus</button>
+        <button type="submit" class="flex-1 bg-slate-900 text-white text-xs font-bold py-3 rounded-xl shadow-sm hover:bg-slate-800 transition">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="modal-edit-relation" class="hidden fixed inset-0 modal-backdrop z-[60] flex items-center justify-center p-4">
+  <div class="dei-card p-6 max-w-md w-full bg-white border border-slate-200">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="font-bold text-sm text-slate-900">Edit Relasi</h3>
+      <button onclick="closeModal('modal-edit-relation')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="saveEditRelation(event)" class="space-y-3">
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Nama Lengkap</label>
+        <input type="text" id="edit-rel-name" required class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Peran / Jabatan</label>
+        <input type="text" id="edit-rel-role" required class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Topik Diskusi Utama</label>
+        <input type="text" id="edit-rel-topic" required class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-[11px] text-slate-500 font-semibold">Tanggal Bertemu</label>
+          <input type="date" id="edit-rel-date" required class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+        </div>
+        <div>
+          <label class="text-[11px] text-slate-500 font-semibold">Durasi Diskusi</label>
+          <input type="text" id="edit-rel-duration" required placeholder="misal: 45 min" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+        </div>
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Progress Leaderboard (%)</label>
+        <input type="number" id="edit-rel-progress" min="0" max="100" required class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="deleteRelationFromModal()" class="flex-1 bg-red-50 text-red-600 text-xs font-bold py-3 rounded-xl hover:bg-red-100 transition"><i class="fa-solid fa-trash mr-1"></i> Hapus</button>
+        <button type="submit" class="flex-1 bg-slate-900 text-white text-xs font-bold py-3 rounded-xl shadow-sm hover:bg-slate-800 transition">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: EDIT PROFILE -->
+<div id="modal-edit-profile" class="hidden fixed inset-0 modal-backdrop z-[60] flex items-center justify-center p-4">
+  <div class="dei-card p-6 max-w-md w-full bg-white border border-slate-200">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="font-bold text-sm text-slate-900">Edit Profil</h3>
+      <button onclick="closeModal('modal-edit-profile')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="saveProfile(event)" class="space-y-3">
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Nama Lengkap</label>
+        <input type="text" id="edit-profile-name" required class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Peran / Jabatan</label>
+        <input type="text" id="edit-profile-role" required class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Warna Avatar</label>
+        <div id="profile-color-swatches" class="flex flex-wrap gap-2 mt-2"></div>
+        <input type="hidden" id="edit-profile-color" value="#f6c453">
+      </div>
+      <button type="submit" class="w-full bg-slate-900 text-white text-xs font-bold py-3 rounded-xl shadow-sm hover:bg-slate-800 transition">Simpan Profil</button>
+    </form>
+  </div>
+</div>
+
+<!-- CHAT CEPAT -->
+<button id="chatcepat-toggle" onclick="toggleChatCepat()" class="w-14 h-14 rounded-full bg-amber-300 hover:bg-amber-400 text-slate-900 shadow-xl flex items-center justify-center" style="position:fixed;bottom:24px;right:20px;z-index:2147483000;">
+  <i id="chatcepat-toggle-icon" class="fa-solid fa-comment-dots text-xl"></i>
+</button>
+
+<div id="chatcepat-panel" class="hidden w-[92vw] max-w-sm dei-card border border-slate-200/60 shadow-2xl flex flex-col overflow-hidden" style="position:fixed;bottom:96px;right:20px;z-index:2147482999;">
+  <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-900 text-white">
+    <div class="flex items-center gap-2"><i class="fa-solid fa-comment-dots text-amber-300"></i><h3 class="font-bold text-xs">Chat Cepat</h3></div>
+    <button onclick="toggleChatCepat()" class="text-slate-300 hover:text-white text-xs"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div id="chatcepat-messages" class="flex-1 overflow-y-auto no-scrollbar p-4 space-y-3 bg-[#f7f6f1]">
+    <div class="cc-bubble-assistant">Bisa buat catat <b>Learning Plan, Topik, Catatan, Buku, atau Relasi</b> langsung pakai kalimat biasa. Contoh:
+• "tambah learning plan judul Flutter Basics, deskripsi belajar Flutter dari nol"
+• "tambah topik Widget Dasar di plan Flutter Basics, status active"
+• "catatan di topik Widget Dasar: StatelessWidget vs StatefulWidget, StatelessWidget tidak punya state internal"
+• "tambah buku Atomic Habits penulis James Clear"
+• "catatan buku Atomic Habits: identitas, fokus ke jadi orang seperti apa bukan cuma hasil"
+• "tambah relasi Sarah, UI Designer, topik Design System"</div>
+  </div>
+  <div class="p-3 border-t border-slate-100 bg-white flex items-center gap-2">
+    <input id="chatcepat-input" type="text" placeholder="Ketik di sini..." onkeydown="if(event.key==='Enter'){event.preventDefault();sendChatCepat();}" class="flex-1 bg-slate-50 border border-slate-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900">
+    <button onclick="sendChatCepat()" class="bg-amber-300 hover:bg-amber-400 text-slate-900 text-xs font-bold px-4 py-2.5 rounded-xl transition whitespace-nowrap">Kirim</button>
+  </div>
+</div>
+
+<script>
+// ============ DATA ============
+let appData = {
+  profile: { name: "Moch Hilmy Fawwaz", role: "System Architect & Developer", color: "#f6c453" },
+  learningPlans: [
+    { id:"plan-1", title:"Nursing Fundamentals", desc:"Dasar-dasar keperawatan & komunikasi medis.", icon:"🩺", color:"#f6c453", nodes:[
+      { id:"node-1", title:"Medical Terminology", desc:"Basic medical language for effective communication.", status:"completed", notes:[
+        { id:"note-1", title:"Istilah dasar", content:"Prefix, root, dan suffix umum dalam istilah medis.", date:"2026-08-01" }
+      ]},
+      { id:"node-2", title:"Pharmacology Basics", desc:"Understanding core drug actions & principles.", status:"active", notes:[] },
+      { id:"node-3", title:"Anatomy & Physiology", desc:"Structure and function of human body systems.", status:"completed", notes:[] },
+      { id:"node-4", title:"Disease Pathophysiology", desc:"Cellular and molecular basis of common diseases.", status:"locked", notes:[] }
+    ]},
+    { id:"plan-2", title:"Beginner's Language Mastery", desc:"Membangun fondasi bahasa asing dari nol.", icon:"🗣️", color:"#8b5cf6", nodes:[
+      { id:"node-5", title:"Alphabet & Pronunciation", desc:"Bunyi dasar dan cara pengucapan.", status:"completed", notes:[] },
+      { id:"node-6", title:"Everyday Vocabulary", desc:"Kosakata harian yang sering dipakai.", status:"completed", notes:[] },
+      { id:"node-7", title:"Basic Grammar", desc:"Struktur kalimat dasar.", status:"active", notes:[] }
+    ]},
+    { id:"plan-3", title:"English Essentials Course", desc:"Kursus dasar bahasa Inggris untuk pemula.", icon:"📘", color:"#f97316", nodes:[
+      { id:"node-8", title:"Tenses Overview", desc:"Present, past, dan future tense.", status:"active", notes:[] }
+    ]}
+  ],
+  books: [
+    { id:"book-1", title:"Clean Code", author:"Robert C. Martin", color:"#334155", notes:[
+      { id:"bn-1", title:"Poin utama", content:"Fokus pada fungsi kecil, keterbacaan, dan refactoring berkala.", date:"2026-08-01" }
+    ]},
+    { id:"book-2", title:"Designing Data-Intensive Apps", author:"Martin Kleppmann", color:"#6366f1", notes:[
+      { id:"bn-2", title:"Poin utama", content:"Memahami reliabilitas, skalabilitas, dan konsistensi data.", date:"2026-08-01" }
+    ]},
+    { id:"book-3", title:"Atomic Habits", author:"James Clear", color:"#10b981", notes:[] },
+    { id:"book-4", title:"Fairy Tale", author:"Stephen King", color:"#ef4444", notes:[] },
+    { id:"book-5", title:"Klara and the Sun", author:"Kazuo Ishiguro", color:"#0ea5e9", notes:[] },
+    { id:"book-6", title:"Mist and Fury", author:"Sarah J. Maas", color:"#ec4899", notes:[] }
+  ],
+  relations: [
+    { id:"rel-1", name:"Michael Kopfler", role:"Project Manager", topic:"Meet the Patient", meetDate:"2026-03-19", duration:"45 min", progress:75 },
+    { id:"rel-2", name:"Alice Koller", role:"Programmer", topic:"Topographic Anatomy", meetDate:"2026-03-21", duration:"16 min", progress:73 },
+    { id:"rel-3", name:"Peter Dinklage", role:"CEO", topic:"Preparation, Sawing", meetDate:"2026-03-22", duration:"28 min", progress:69 },
+    { id:"rel-4", name:"Julia Berger", role:"CEO", topic:"Diagnosing a Patient", meetDate:"2026-03-24", duration:"45 min", progress:68 },
+    { id:"rel-5", name:"John Wick", role:"Web Designer", topic:"Potions or Injections", meetDate:"2026-03-26", duration:"56 min", progress:58 }
+  ]
+};
+
+const BOOK_COLORS = ["#ef4444","#f59e0b","#10b981","#0ea5e9","#6366f1","#8b5cf6","#ec4899","#334155"];
+const PLAN_ICONS = ["📁","⚡","📖","☕","✈️","💙","🎮","🎵","💻","🍔","🚀","🎨","🎓","🩺","🧠","💡","🗣️"];
+const PLAN_COLORS = ["#f6c453","#22c55e","#ec4899","#8b5cf6","#0ea5e9","#f97316","#84cc16","#334155"];
+const AVATAR_COLORS = ["#f6c453","#8b5cf6","#0ea5e9","#ec4899","#10b981","#f97316"];
+const PAGE_SIZE = 6;
+const NODE_PAGE_SIZE = 4;
+const NOTE_PAGE_SIZE = 4;
+
+let fuseInstance=null, html5QrcodeScanner=null;
+let currentPlanId=null, currentNodeId=null, currentBookId=null;
+let editingPlanId=null, editingNodeId=null, editingNoteId=null, editingBookId=null, editingBookNoteId=null, editingRelationId=null;
+
+let pgPlan=1, pgNode=1, pgNetwork=1, pgBooks=1, pgNotes=1, pgBookNotes=1;
+
+document.addEventListener("DOMContentLoaded", () => {
+  fetch('data.json').then(r=>r.json()).then(d=>{appData=d; renderAll();}).catch(()=>renderAll());
+  generateMyQR();
+  buildBookColorSwatches();
+  buildProfileColorSwatches();
+  initDockNav();
+});
+
+function renderAll(){
+  renderPlanList();
+  renderBooks();
+  renderRelations();
+  renderProfile();
+  initFuseSearch();
+}
+
+// ---------- helpers ----------
+function getPlan(id){return appData.learningPlans.find(p=>p.id===id);}
+function getNode(planId,nodeId){return getPlan(planId)?.nodes.find(n=>n.id===nodeId);}
+function getBook(id){return appData.books.find(b=>b.id===id);}
+function statusMeta(status){
+  if(status==='completed')return{badge:'bg-emerald-100 text-emerald-700',hex:'bg-emerald-500 text-white',icon:'fa-check'};
+  if(status==='active')return{badge:'bg-purple-100 text-purple-700',hex:'bg-amber-400 text-slate-900',icon:'fa-book-open'};
+  return{badge:'bg-slate-100 text-slate-500',hex:'bg-slate-200 text-slate-400',icon:'fa-lock'};
+}
+function closeModal(id){document.getElementById(id).classList.add('hidden');}
+function openModal(id){document.getElementById(id).classList.remove('hidden');}
+function shadeColor(hex,percent){
+  const num=parseInt(hex.replace('#',''),16);
+  let r=(num>>16)+Math.round(255*percent), g=((num>>8)&0x00FF)+Math.round(255*percent), b=(num&0x0000FF)+Math.round(255*percent);
+  r=Math.max(Math.min(255,r),0); g=Math.max(Math.min(255,g),0); b=Math.max(Math.min(255,b),0);
+  return `#${(r<<16|g<<8|b).toString(16).padStart(6,'0')}`;
+}
+function paginate(arr,page,size){
+  const totalPages=Math.max(1,Math.ceil(arr.length/size));
+  const p=Math.min(Math.max(1,page),totalPages);
+  return {items:arr.slice((p-1)*size,p*size), page:p, totalPages};
+}
+function renderPagination(containerId, page, totalPages, onGoto){
+  const box=document.getElementById(containerId);
+  if(!box)return;
+  if(totalPages<=1){box.innerHTML='';return;}
+  let html=`<button class="pg-btn" ${page===1?'disabled':''} onclick="${onGoto}(${page-1})"><i class="fa-solid fa-chevron-left"></i></button>`;
+  for(let i=1;i<=totalPages;i++){
+    if(totalPages>7 && i!==1 && i!==totalPages && Math.abs(i-page)>1){
+      if(i===2||i===totalPages-1) html+=`<span class="text-slate-300 text-xs px-0.5">…</span>`;
+      continue;
+    }
+    html+=`<button class="pg-btn ${i===page?'active':''}" onclick="${onGoto}(${i})">${i}</button>`;
+  }
+  html+=`<button class="pg-btn" ${page===totalPages?'disabled':''} onclick="${onGoto}(${page+1})"><i class="fa-solid fa-chevron-right"></i></button>`;
+  box.innerHTML=html;
+}
+function bookCoverHTML(book,showRibbon=true){
+  const color=book.color||'#334155';
+  const gradient=`linear-gradient(150deg, ${shadeColor(color,0.18)} 0%, ${color} 55%, ${shadeColor(color,-0.18)} 100%)`;
+  return `<div class="book-cover" style="background:${gradient}" onclick="openBookDetail('${book.id}')">
+    <div class="book-texture"></div>
+    <div class="book-cover-vignette"></div>
+    <div class="book-spine-hl"></div>
+    <span class="book-monogram">${(book.title||'?').charAt(0)}</span>
+    <div>
+      <p class="book-title-cover">${book.title}</p>
+      <div class="book-rule"></div>
+    </div>
+    <p class="book-author-cover">${book.author||'Anonim'}</p>
+    ${showRibbon?'<div class="book-ribbon"></div>':''}
+  </div>`;
+}
+
+// ---------- dock nav ----------
+function initDockNav(){ movePillTo('learning'); }
+function movePillTo(pageId){
+  const btn=document.querySelector(`.dock-item[data-dock="${pageId}"]`);
+  const pill=document.getElementById('dock-pill');
+  if(!btn||!pill)return;
+  pill.style.width = btn.offsetWidth+'px';
+  pill.style.transform = `translateX(${btn.offsetLeft-6}px)`;
+  document.querySelectorAll('.dock-item').forEach(b=>b.classList.toggle('active', b===btn));
+}
+
+// ---------- plan list ----------
+function renderPlanList(){
+  const {items,page,totalPages}=paginate(appData.learningPlans,pgPlan,PAGE_SIZE);
+  pgPlan=page;
+  const box=document.getElementById('plan-grid');
+  if(appData.learningPlans.length===0){
+    box.innerHTML=`<p class="text-xs text-slate-400 col-span-full text-center py-10">Belum ada Learning Plan. Klik "+ Tambah Learning Plan" untuk mulai.</p>`;
+    document.getElementById('plan-pagination').innerHTML='';
+    return;
+  }
+  box.innerHTML=items.map(plan=>{
+    const total=plan.nodes.length;
+    const done=plan.nodes.filter(n=>n.status==='completed').length;
+    const pct=total?Math.round((done/total)*100):0;
+    const color=plan.color||'#f59e0b';
+    const icon=plan.icon||'📁';
+    const gradient=`linear-gradient(135deg, ${color} 0%, ${shadeColor(color,-0.22)} 100%)`;
+    return `
+    <div class="group relative">
+      <div class="absolute top-3 right-3 flex gap-1.5 card-actions z-10">
+        <button onclick="event.stopPropagation(); openEditPlanModal('${plan.id}')" class="icon-btn text-slate-600"><i class="fa-solid fa-pen"></i></button>
+        <button onclick="event.stopPropagation(); deletePlan('${plan.id}')" class="icon-btn text-red-500"><i class="fa-solid fa-trash"></i></button>
+      </div>
+      <div class="plan-card" style="background:${gradient}" onclick="showPathView('${plan.id}')">
+        <div class="flex items-center justify-between relative z-10">
+          <div class="icon-badge">${icon}</div>
+          <span class="text-[10px] font-bold bg-white/20 px-2 py-1 rounded-full">${pct}%</span>
+        </div>
+        <div class="relative z-10">
+          <h4 class="font-bold text-sm">${plan.title}</h4>
+          <p class="text-[11px] text-white/75 mt-0.5 line-clamp-1">${plan.desc||''}</p>
+          <div class="plan-progress-track mt-3"><div class="plan-progress-fill" style="width:${pct}%"></div></div>
+          <p class="text-[10px] text-white/70 mt-1.5 font-semibold">${done}/${total} topik selesai</p>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  renderPagination('plan-pagination', page, totalPages, 'gotoPlanPage');
+}
+function gotoPlanPage(p){pgPlan=p; renderPlanList();}
+
+function showPlanList(){
+  currentPlanId=null;
+  document.getElementById('view-path').classList.add('hidden');
+  document.getElementById('view-plan-list').classList.remove('hidden');
+  renderPlanList();
+}
+function showPathView(planId){
+  currentPlanId=planId; pgNode=1;
+  const plan=getPlan(planId);
+  if(!plan)return;
+  document.getElementById('view-plan-list').classList.add('hidden');
+  document.getElementById('view-path').classList.remove('hidden');
+  document.getElementById('path-view-title').textContent=plan.title;
+  document.getElementById('path-view-desc').textContent=plan.desc||'';
+  renderPathView(plan);
+}
+function renderPathView(plan){
+  const box=document.getElementById('hex-path-container');
+  const {items,page,totalPages}=paginate(plan.nodes,pgNode,NODE_PAGE_SIZE);
+  pgNode=page;
+  if(plan.nodes.length===0){
+    box.innerHTML=`<p class="text-xs text-slate-400 text-center py-10">Belum ada topik. Klik "+ Tambah Topik" untuk membuat node pertama.</p>`;
+    document.getElementById('node-pagination').innerHTML='';
+    return;
+  }
+  box.innerHTML=`<div class="path-line"></div>`+items.map((node,i)=>{
+    const meta=statusMeta(node.status);
+    const alignEnd=i%2===1;
+    return `
+    <div class="relative z-10 w-full flex ${alignEnd?'justify-end':'justify-start'} md:px-16">
+      <div class="group flex items-center gap-4 ${alignEnd?'flex-row-reverse text-right':''}">
+        <div onclick="openNodeNotes('${plan.id}','${node.id}')" class="hex-node ${meta.hex} shadow-md ring-4 ring-[#f3f1ea] relative">
+          <i class="fa-solid ${meta.icon} text-lg"></i>
+          ${node.notes.length>0?`<span class="absolute -top-1 -right-1 bg-slate-900 text-white text-[9px] font-bold w-5 h-5 rounded-full flex items-center justify-center">${node.notes.length}</span>`:''}
+        </div>
+        <div class="max-w-[180px]">
+          <div class="flex items-center gap-1 mb-1 ${alignEnd?'justify-end':''}">
+            <span class="inline-block text-[9px] font-bold px-2 py-0.5 rounded-full ${meta.badge} capitalize">${node.status}</span>
+            <button onclick="openEditNodeModal('${plan.id}','${node.id}')" class="icon-btn card-actions text-slate-600 !w-5 !h-5"><i class="fa-solid fa-pen text-[9px]"></i></button>
+          </div>
+          <h4 class="font-bold text-xs text-slate-800">${node.title}</h4>
+          <p class="text-[10px] text-slate-400 leading-tight">${node.desc||''}</p>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  renderPagination('node-pagination', page, totalPages, 'gotoNodePage');
+}
+function gotoNodePage(p){pgNode=p; renderPathView(getPlan(currentPlanId));}
+
+// ---------- peers ----------
+const AVATAR_BG = ["#fde68a","#c7d2fe","#fbcfe8","#a7f3d0","#bae6fd","#fed7aa"];
+const PEER_ACCENTS = [
+  {bg:"#eef4ff",text:"#3b5bdb"},
+  {bg:"#fff7ed",text:"#c2410c"},
+  {bg:"#fdf2f8",text:"#be185d"},
+  {bg:"#ecfdf5",text:"#047857"},
+  {bg:"#f5f3ff",text:"#6d28d9"},
+  {bg:"#fefce8",text:"#a16207"}
+];
+const MONTHS_ID = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+function formatDayMonth(dateStr){
+  if(!dateStr) return {day:"--",month:"—"};
+  const d=new Date(dateStr+"T00:00:00");
+  if(isNaN(d)) return {day:"--",month:"—"};
+  return {day:String(d.getDate()).padStart(2,'0'), month:MONTHS_ID[d.getMonth()]};
+}
+function peerAvatarUrl(name){
+  return `https://api.dicebear.com/8.x/adventurer/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,ffd5dc,ffdfbf,d1d4f9`;
+}
+function waveformHTML(color){
+  const heights=[5,10,7,14,8,11,6];
+  return `<div class="peer-wave" style="color:${color}">${heights.map(h=>`<span style="height:${h}px"></span>`).join('')}</div>`;
+}
+function renderRelations(){
+  const {items,page,totalPages}=paginate(appData.relations,pgNetwork,PAGE_SIZE);
+  pgNetwork=page;
+  const box=document.getElementById('network-grid');
+  if(appData.relations.length===0){
+    box.innerHTML=`<p class="text-xs text-slate-400 col-span-full text-center py-10">Belum ada relasi. Klik "+ Input / Scan QR" untuk mulai.</p>`;
+    document.getElementById('network-pagination').innerHTML='';
+    document.getElementById('leaderboard-list').innerHTML='';
+    return;
+  }
+  box.innerHTML=items.map((r,idx)=>{
+    const fallbackBg=AVATAR_BG[idx%AVATAR_BG.length];
+    const accent=PEER_ACCENTS[idx%PEER_ACCENTS.length];
+    const {day,month}=formatDayMonth(r.meetDate);
+    const avatarUrl=peerAvatarUrl(r.name);
+    return `
+    <div class="group peer-day-card">
+      <div class="absolute top-3 right-3 flex gap-1.5 card-actions z-20"><button onclick="openEditRelationModal('${r.id}')" class="icon-btn text-slate-600"><i class="fa-solid fa-pen"></i></button></div>
+      <div class="peer-avatar-wrap">
+        <img src="${avatarUrl}" alt="${r.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="peer-avatar-fallback" style="display:none; background:${fallbackBg};">${r.name.charAt(0)}</div>
+      </div>
+      <div class="peer-date-chip"><span class="day-num">${day}</span>${month}</div>
+      <h4 class="font-bold text-sm text-slate-800 mt-3 leading-snug pr-16">${r.name}</h4>
+      <p class="text-[11px] text-slate-400">${r.role}</p>
+      <div class="peer-topic-pill" style="background:${accent.bg};">
+        <p class="text-[11px] font-bold" style="color:${accent.text};">${r.topic}</p>
+        <div class="flex items-center justify-between mt-1.5">
+          <span class="text-[10px] font-semibold flex items-center gap-1" style="color:${accent.text}; opacity:.75;"><i class="fa-regular fa-clock"></i> ${r.duration||'-'}</span>
+          ${waveformHTML(accent.text)}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  renderPagination('network-pagination', page, totalPages, 'gotoNetworkPage');
+  renderLeaderboard();
+}
+function gotoNetworkPage(p){pgNetwork=p; renderRelations();}
+function renderLeaderboard(){
+  const sorted=[...appData.relations].sort((a,b)=>(b.progress||0)-(a.progress||0));
+  const box=document.getElementById('leaderboard-list');
+  if(sorted.length===0){box.innerHTML='';return;}
+  box.innerHTML=sorted.slice(0,8).map((r,i)=>`
+    <div class="lb-row ${i===0?'bg-amber-50':''}">
+      <div class="lb-rank ${i===0?'gold':''}">${i+1}</div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[11px] font-bold text-slate-800 truncate">${r.name}</p>
+        <div class="lb-bar-track"><div class="lb-bar-fill" style="width:${r.progress||0}%"></div></div>
+      </div>
+      <span class="text-[10px] font-extrabold text-slate-500">${r.progress||0}%</span>
+    </div>`).join('');
+}
+
+// ---------- books ----------
+function renderBooks(){
+  const {items,page,totalPages}=paginate(appData.books,pgBooks,10);
+  pgBooks=page;
+  const box=document.getElementById('books-grid');
+  if(appData.books.length===0){
+    box.innerHTML=`<p class="text-xs text-slate-400 col-span-full text-center py-10">Belum ada buku. Klik "+ Tambah Buku" untuk mulai.</p>`;
+    document.getElementById('books-pagination').innerHTML='';
+    return;
+  }
+  box.innerHTML=items.map(b=>`
+    <div class="group">
+      <div class="relative">
+        <div class="absolute top-2 right-2 flex gap-1.5 card-actions z-10"><button onclick="event.stopPropagation(); openEditBookModal('${b.id}')" class="icon-btn text-slate-600"><i class="fa-solid fa-pen"></i></button></div>
+        ${bookCoverHTML(b)}
+      </div>
+      <h4 class="font-bold text-xs text-slate-800 mt-2 truncate">${b.title}</h4>
+      <p class="text-[10px] text-slate-400">${b.author||'Anonim'}</p>
+    </div>`).join('');
+  renderPagination('books-pagination', page, totalPages, 'gotoBooksPage');
+}
+function gotoBooksPage(p){pgBooks=p; renderBooks();}
+
+// ---------- profile ----------
+function renderProfile(){
+  const p=appData.profile;
+  document.getElementById('profile-name').textContent=p.name;
+  document.getElementById('profile-role').textContent=p.role;
+  const initial=(p.name||'?').charAt(0).toUpperCase();
+  document.getElementById('profile-avatar-lg').textContent=initial;
+  document.getElementById('profile-avatar-lg').style.background=p.color||'#f6c453';
+  document.getElementById('profile-avatar-lg').style.color='#0f172a';
+  document.getElementById('header-avatar').textContent=initial;
+  document.getElementById('header-name').textContent=p.name.split(' ').slice(0,2).join(' ');
+  document.getElementById('stat-plans').textContent=appData.learningPlans.length;
+  document.getElementById('stat-books').textContent=appData.books.length;
+  document.getElementById('stat-peers').textContent=appData.relations.length;
+  generateMyQR();
+}
+function buildProfileColorSwatches(){
+  const box=document.getElementById('profile-color-swatches');
+  box.innerHTML=AVATAR_COLORS.map(c=>`<div class="color-dot" style="background:${c}" data-color="${c}" onclick="pickProfileColor('${c}')"></div>`).join('');
+}
+function pickProfileColor(color){
+  document.getElementById('edit-profile-color').value=color;
+  document.querySelectorAll('#profile-color-swatches .color-dot').forEach(s=>s.classList.toggle('selected', s.dataset.color.toLowerCase()===color.toLowerCase()));
+}
+function openEditProfileModal(){
+  const p=appData.profile;
+  document.getElementById('edit-profile-name').value=p.name;
+  document.getElementById('edit-profile-role').value=p.role;
+  buildProfileColorSwatches();
+  pickProfileColor(p.color||AVATAR_COLORS[0]);
+  openModal('modal-edit-profile');
+}
+function saveProfile(e){
+  e.preventDefault();
+  appData.profile.name=document.getElementById('edit-profile-name').value.trim()||appData.profile.name;
+  appData.profile.role=document.getElementById('edit-profile-role').value.trim();
+  appData.profile.color=document.getElementById('edit-profile-color').value;
+  closeModal('modal-edit-profile');
+  renderProfile();
+  openJsonExportModal();
+}
+
+// ---------- nav controller ----------
+function navTo(pageId){
+  document.querySelectorAll('.page-content').forEach(el=>el.classList.add('hidden'));
+  document.getElementById(`page-${pageId}`).classList.remove('hidden');
+  if(pageId==='learning') showPlanList();
+  ['learning','network','books','profile'].forEach(id=>{
+    const mbBtn=document.getElementById(`mb-nav-${id}`);
+    if(mbBtn) mbBtn.className = id===pageId ? 'flex flex-col items-center text-slate-900' : 'flex flex-col items-center text-slate-400';
+  });
+  movePillTo(pageId);
+}
+
+// ---------- search ----------
+function initFuseSearch(){
+  const items=[];
+  appData.learningPlans.forEach(p=>{
+    items.push({type:'Learning Plan',title:p.title,desc:p.desc,planId:p.id});
+    p.nodes.forEach(n=>{
+      items.push({type:'Topik',title:n.title,desc:n.desc,planId:p.id});
+      n.notes.forEach(note=>items.push({type:'Catatan',title:note.title,desc:note.content,planId:p.id}));
+    });
+  });
+  appData.books.forEach(b=>{
+    items.push({type:'Buku',title:b.title,desc:b.author,bookId:b.id});
+    b.notes.forEach(n=>items.push({type:'Catatan Buku',title:n.title,desc:n.content,bookId:b.id}));
+  });
+  appData.relations.forEach(r=>items.push({type:'Relasi/Peer',title:r.name,desc:`${r.role} - ${r.topic}`}));
+  fuseInstance=new Fuse(items,{keys:['title','desc','type'],threshold:0.3});
+}
+function handleSearch(q){
+  const panel=document.getElementById('search-results-panel');
+  const list=document.getElementById('search-results-list');
+  if(!q.trim()){panel.classList.add('hidden');return;}
+  const results=fuseInstance.search(q);
+  panel.classList.remove('hidden');
+  if(results.length===0){list.innerHTML=`<p class="text-xs text-slate-400 py-4 text-center">Data tidak ditemukan.</p>`;return;}
+  list.innerHTML=results.map(r=>{
+    const clickable=r.item.planId||r.item.bookId;
+    let action='';
+    if(r.item.planId) action=`onclick="toggleMobileSearch(false); showPathView('${r.item.planId}')"`;
+    if(r.item.bookId) action=`onclick="toggleMobileSearch(false); navTo('books'); openBookDetail('${r.item.bookId}')"`;
+    return `<div class="p-3 bg-slate-50 border border-slate-200 rounded-xl ${clickable?'cursor-pointer hover:border-slate-900':''}" ${action}>
+      <span class="text-[9px] font-bold uppercase text-indigo-600 tracking-wider">${r.item.type}</span>
+      <h4 class="text-xs font-bold text-slate-800">${r.item.title}</h4>
+      <p class="text-[11px] text-slate-500">${r.item.desc||''}</p>
+    </div>`;
+  }).join('');
+}
+function toggleMobileSearch(show){
+  const panel=document.getElementById('search-results-panel');
+  if(show){const q=prompt("Cari topik, buku, atau relasi:"); if(q) handleSearch(q);}
+  else panel.classList.add('hidden');
+}
+
+// ---------- plans crud ----------
+function buildPlanIconSwatches(){document.getElementById('plan-icon-swatches').innerHTML=PLAN_ICONS.map(ic=>`<div class="emoji-swatch" data-icon="${ic}" onclick="pickPlanIcon('${ic}')">${ic}</div>`).join('');}
+function pickPlanIcon(icon){document.getElementById('plan-icon').value=icon; document.querySelectorAll('#plan-icon-swatches .emoji-swatch').forEach(s=>s.classList.toggle('selected',s.dataset.icon===icon));}
+function buildPlanColorSwatches(){document.getElementById('plan-color-swatches').innerHTML=PLAN_COLORS.map(c=>`<div class="color-dot" style="background:${c}" data-color="${c}" onclick="pickPlanColor('${c}')"></div>`).join('');}
+function pickPlanColor(color){document.getElementById('plan-color').value=color; document.querySelectorAll('#plan-color-swatches .color-dot').forEach(s=>s.classList.toggle('selected',s.dataset.color.toLowerCase()===color.toLowerCase()));}
+function openAddPlanModal(){
+  editingPlanId=null;
+  document.getElementById('plan-modal-heading').textContent='Tambah Learning Plan';
+  document.getElementById('plan-delete-btn').classList.add('hidden');
+  document.getElementById('plan-title').value=''; document.getElementById('plan-desc').value='';
+  buildPlanIconSwatches(); buildPlanColorSwatches();
+  pickPlanIcon(PLAN_ICONS[0]); pickPlanColor(PLAN_COLORS[0]);
+  openModal('modal-add-plan');
+}
+function openEditPlanModal(planId){
+  const plan=getPlan(planId); if(!plan)return;
+  editingPlanId=planId;
+  document.getElementById('plan-modal-heading').textContent='Edit Learning Plan';
+  document.getElementById('plan-delete-btn').classList.remove('hidden');
+  document.getElementById('plan-title').value=plan.title; document.getElementById('plan-desc').value=plan.desc||'';
+  buildPlanIconSwatches(); buildPlanColorSwatches();
+  pickPlanIcon(plan.icon||PLAN_ICONS[0]); pickPlanColor(plan.color||PLAN_COLORS[0]);
+  openModal('modal-add-plan');
+}
+function saveNewPlan(e){
+  e.preventDefault();
+  const title=document.getElementById('plan-title').value.trim();
+  const desc=document.getElementById('plan-desc').value.trim();
+  const icon=document.getElementById('plan-icon').value.trim()||'📁';
+  const color=document.getElementById('plan-color').value||PLAN_COLORS[0];
+  if(!title)return;
+  if(editingPlanId){const plan=getPlan(editingPlanId); plan.title=title; plan.desc=desc; plan.icon=icon; plan.color=color;}
+  else{appData.learningPlans.push({id:`plan-${Date.now()}`,title,desc,icon,color,nodes:[]}); pgPlan=Math.ceil(appData.learningPlans.length/PAGE_SIZE);}
+  closeModal('modal-add-plan'); renderPlanList(); initFuseSearch(); openJsonExportModal();
+}
+function deletePlan(planId){
+  if(!confirm('Hapus Learning Plan ini beserta semua topik & catatannya?'))return;
+  appData.learningPlans=appData.learningPlans.filter(p=>p.id!==planId);
+  renderPlanList(); initFuseSearch();
+}
+function deletePlanFromModal(){if(editingPlanId){closeModal('modal-add-plan'); deletePlan(editingPlanId);}}
+
+// ---------- nodes crud ----------
+function openAddNodeModal(){
+  if(!currentPlanId)return;
+  editingNodeId=null;
+  document.getElementById('node-modal-heading').textContent='Tambah Topik / Node';
+  document.getElementById('node-delete-btn').classList.add('hidden');
+  document.getElementById('node-title').value=''; document.getElementById('node-desc').value=''; document.getElementById('node-status').value='active';
+  openModal('modal-add-node');
+}
+function openEditNodeModal(planId,nodeId){
+  const node=getNode(planId,nodeId); if(!node)return;
+  currentPlanId=planId; editingNodeId=nodeId;
+  document.getElementById('node-modal-heading').textContent='Edit Topik / Node';
+  document.getElementById('node-delete-btn').classList.remove('hidden');
+  document.getElementById('node-title').value=node.title; document.getElementById('node-desc').value=node.desc||''; document.getElementById('node-status').value=node.status;
+  openModal('modal-add-node');
+}
+function saveNewNode(e){
+  e.preventDefault();
+  const plan=getPlan(currentPlanId); if(!plan)return;
+  const title=document.getElementById('node-title').value.trim();
+  const desc=document.getElementById('node-desc').value.trim();
+  const status=document.getElementById('node-status').value;
+  if(!title)return;
+  if(editingNodeId){const node=getNode(currentPlanId,editingNodeId); node.title=title; node.desc=desc; node.status=status;}
+  else{plan.nodes.push({id:`node-${Date.now()}`,title,desc,status,notes:[]}); pgNode=Math.ceil(plan.nodes.length/NODE_PAGE_SIZE);}
+  closeModal('modal-add-node'); renderPathView(plan); renderPlanList(); initFuseSearch(); openJsonExportModal();
+}
+function deleteNode(planId,nodeId){
+  if(!confirm('Hapus topik ini beserta semua catatannya?'))return;
+  const plan=getPlan(planId); plan.nodes=plan.nodes.filter(n=>n.id!==nodeId);
+  renderPathView(plan); renderPlanList(); initFuseSearch();
+}
+function deleteNodeFromModal(){if(editingNodeId){const pId=currentPlanId,nId=editingNodeId; closeModal('modal-add-node'); deleteNode(pId,nId);}}
+
+// ---------- notes crud ----------
+function openNodeNotes(planId,nodeId){
+  currentPlanId=planId; currentNodeId=nodeId; pgNotes=1;
+  const node=getNode(planId,nodeId); if(!node)return;
+  document.getElementById('notes-modal-title').textContent=node.title;
+  document.getElementById('notes-modal-desc').textContent=node.desc||'';
+  renderNotesList(node);
+  openModal('modal-view-notes');
+}
+function renderNotesList(node){
+  const box=document.getElementById('notes-list');
+  const reversed=node.notes.slice().reverse();
+  const {items,page,totalPages}=paginate(reversed,pgNotes,NOTE_PAGE_SIZE);
+  pgNotes=page;
+  if(node.notes.length===0){box.innerHTML=`<p class="text-xs text-slate-400 text-center py-8">Belum ada catatan untuk topik ini.</p>`; document.getElementById('notes-pagination').innerHTML=''; return;}
+  box.innerHTML=items.map(n=>`
+    <div class="group note-card bg-slate-50 rounded-xl p-3 relative">
+      <div class="flex justify-between items-start">
+        <h5 class="font-bold text-xs text-slate-800 pr-10">${n.title}</h5>
+        <span class="text-[9px] text-slate-400 font-semibold whitespace-nowrap ml-2">${n.date}</span>
+      </div>
+      <p class="text-[11px] text-slate-600 mt-1 whitespace-pre-wrap">${n.content}</p>
+      <div class="absolute bottom-3 right-3 flex gap-1.5 card-actions"><button onclick="openEditNoteModal('${n.id}')" class="icon-btn text-slate-600"><i class="fa-solid fa-pen"></i></button></div>
+    </div>`).join('');
+  renderPagination('notes-pagination', page, totalPages, 'gotoNotesPage');
+}
+function gotoNotesPage(p){pgNotes=p; renderNotesList(getNode(currentPlanId,currentNodeId));}
+function openAddNoteModal(){
+  editingNoteId=null;
+  document.getElementById('note-modal-heading').textContent='Tambah Catatan Belajar';
+  document.getElementById('note-delete-btn').classList.add('hidden');
+  document.getElementById('note-title').value=''; document.getElementById('note-content').value='';
+  openModal('modal-add-note');
+}
+function openEditNoteModal(noteId){
+  const node=getNode(currentPlanId,currentNodeId);
+  const note=node.notes.find(n=>n.id===noteId); if(!note)return;
+  editingNoteId=noteId;
+  document.getElementById('note-modal-heading').textContent='Edit Catatan';
+  document.getElementById('note-delete-btn').classList.remove('hidden');
+  document.getElementById('note-title').value=note.title; document.getElementById('note-content').value=note.content;
+  openModal('modal-add-note');
+}
+function saveNewNote(e){
+  e.preventDefault();
+  const node=getNode(currentPlanId,currentNodeId); if(!node)return;
+  const title=document.getElementById('note-title').value.trim();
+  const content=document.getElementById('note-content').value.trim();
+  if(!title||!content)return;
+  if(editingNoteId){const note=node.notes.find(n=>n.id===editingNoteId); note.title=title; note.content=content;}
+  else{node.notes.push({id:`note-${Date.now()}`,title,content,date:new Date().toISOString().slice(0,10)}); pgNotes=1;}
+  closeModal('modal-add-note'); renderNotesList(node); renderPathView(getPlan(currentPlanId)); initFuseSearch(); openJsonExportModal();
+}
+function deleteNoteFromModal(){
+  if(!editingNoteId)return;
+  if(!confirm('Hapus catatan ini?'))return;
+  const node=getNode(currentPlanId,currentNodeId);
+  node.notes=node.notes.filter(n=>n.id!==editingNoteId);
+  closeModal('modal-add-note'); renderNotesList(node); renderPathView(getPlan(currentPlanId)); initFuseSearch();
+}
+
+// ---------- books crud ----------
+function buildBookColorSwatches(){document.getElementById('book-color-swatches').innerHTML=BOOK_COLORS.map(c=>`<div class="swatch" style="background:${c}" onclick="pickBookColor('${c}')" data-color="${c}"></div>`).join('');}
+function pickBookColor(color){document.getElementById('book-color').value=color; document.getElementById('book-color-custom').value=color; document.querySelectorAll('#book-color-swatches .swatch').forEach(s=>s.classList.toggle('selected',s.dataset.color.toLowerCase()===color.toLowerCase()));}
+function openAddBookModal(){
+  editingBookId=null;
+  document.getElementById('book-modal-heading').textContent='Tambah Buku';
+  document.getElementById('book-delete-btn').classList.add('hidden');
+  document.getElementById('book-title').value=''; document.getElementById('book-author').value='';
+  pickBookColor(BOOK_COLORS[Math.floor(Math.random()*BOOK_COLORS.length)]);
+  openModal('modal-add-book');
+}
+function openEditBookModal(bookId){
+  const book=getBook(bookId); if(!book)return;
+  editingBookId=bookId;
+  document.getElementById('book-modal-heading').textContent='Edit Buku';
+  document.getElementById('book-delete-btn').classList.remove('hidden');
+  document.getElementById('book-title').value=book.title; document.getElementById('book-author').value=book.author||'';
+  pickBookColor(book.color||'#334155');
+  openModal('modal-add-book');
+}
+function saveNewBook(e){
+  e.preventDefault();
+  const title=document.getElementById('book-title').value.trim();
+  const author=document.getElementById('book-author').value.trim();
+  const color=document.getElementById('book-color').value;
+  if(!title)return;
+  if(editingBookId){const book=getBook(editingBookId); book.title=title; book.author=author; book.color=color;}
+  else{appData.books.push({id:`book-${Date.now()}`,title,author,color,notes:[]}); pgBooks=Math.ceil(appData.books.length/10);}
+  closeModal('modal-add-book'); renderBooks(); renderProfile(); initFuseSearch(); openJsonExportModal();
+}
+function deleteBookFromModal(){
+  if(!editingBookId)return;
+  if(!confirm('Hapus buku ini beserta semua catatannya?'))return;
+  appData.books=appData.books.filter(b=>b.id!==editingBookId);
+  closeModal('modal-add-book'); renderBooks(); renderProfile(); initFuseSearch();
+}
+
+// ---------- book detail/notes ----------
+function openBookDetail(bookId){
+  currentBookId=bookId; pgBookNotes=1;
+  const book=getBook(bookId); if(!book)return;
+  document.getElementById('book-detail-cover').innerHTML=bookCoverHTML(book,false).replace('<div class="book-cover"','<div class="book-cover !cursor-default"');
+  document.getElementById('book-detail-title').textContent=book.title;
+  document.getElementById('book-detail-author').textContent=book.author?`oleh ${book.author}`:'Penulis tidak diketahui';
+  renderBookNotesList(book);
+  openModal('modal-book-detail');
+}
+function renderBookNotesList(book){
+  const box=document.getElementById('book-notes-list');
+  const reversed=book.notes.slice().reverse();
+  const {items,page,totalPages}=paginate(reversed,pgBookNotes,NOTE_PAGE_SIZE);
+  pgBookNotes=page;
+  if(book.notes.length===0){box.innerHTML=`<p class="text-xs text-slate-400 text-center py-8">Belum ada catatan/pengingat untuk buku ini.</p>`; document.getElementById('book-notes-pagination').innerHTML=''; return;}
+  box.innerHTML=items.map(n=>`
+    <div class="group note-card bg-slate-50 rounded-xl p-3 relative">
+      <div class="flex justify-between items-start">
+        <h5 class="font-bold text-xs text-slate-800 pr-10">${n.title}</h5>
+        <span class="text-[9px] text-slate-400 font-semibold whitespace-nowrap ml-2">${n.date}</span>
+      </div>
+      <p class="text-[11px] text-slate-600 mt-1 whitespace-pre-wrap">${n.content}</p>
+      <div class="absolute bottom-3 right-3 flex gap-1.5 card-actions"><button onclick="openEditBookNoteModal('${n.id}')" class="icon-btn text-slate-600"><i class="fa-solid fa-pen"></i></button></div>
+    </div>`).join('');
+  renderPagination('book-notes-pagination', page, totalPages, 'gotoBookNotesPage');
+}
+function gotoBookNotesPage(p){pgBookNotes=p; renderBookNotesList(getBook(currentBookId));}
+function openAddBookNoteModal(){
+  editingBookNoteId=null;
+  document.getElementById('book-note-modal-heading').textContent='Tambah Catatan Buku';
+  document.getElementById('book-note-delete-btn').classList.add('hidden');
+  document.getElementById('book-note-title').value=''; document.getElementById('book-note-content').value='';
+  openModal('modal-add-book-note');
+}
+function openEditBookNoteModal(noteId){
+  const book=getBook(currentBookId);
+  const note=book.notes.find(n=>n.id===noteId); if(!note)return;
+  editingBookNoteId=noteId;
+  document.getElementById('book-note-modal-heading').textContent='Edit Catatan Buku';
+  document.getElementById('book-note-delete-btn').classList.remove('hidden');
+  document.getElementById('book-note-title').value=note.title; document.getElementById('book-note-content').value=note.content;
+  openModal('modal-add-book-note');
+}
+function saveNewBookNote(e){
+  e.preventDefault();
+  const book=getBook(currentBookId); if(!book)return;
+  const title=document.getElementById('book-note-title').value.trim();
+  const content=document.getElementById('book-note-content').value.trim();
+  if(!title||!content)return;
+  if(editingBookNoteId){const note=book.notes.find(n=>n.id===editingBookNoteId); note.title=title; note.content=content;}
+  else{book.notes.push({id:`bn-${Date.now()}`,title,content,date:new Date().toISOString().slice(0,10)}); pgBookNotes=1;}
+  closeModal('modal-add-book-note'); renderBookNotesList(book); initFuseSearch(); openJsonExportModal();
+}
+function deleteBookNoteFromModal(){
+  if(!editingBookNoteId)return;
+  if(!confirm('Hapus catatan ini?'))return;
+  const book=getBook(currentBookId);
+  book.notes=book.notes.filter(n=>n.id!==editingBookNoteId);
+  closeModal('modal-add-book-note'); renderBookNotesList(book); initFuseSearch();
+}
+
+// ---------- relations crud ----------
+function saveRelation(e){
+  e.preventDefault();
+  const name=document.getElementById('input-rel-name').value;
+  const role=document.getElementById('input-rel-role').value;
+  const topic=document.getElementById('input-rel-topic').value;
+  const meetDate=document.getElementById('input-rel-date').value || new Date().toISOString().slice(0,10);
+  const duration=document.getElementById('input-rel-duration').value.trim() || '-';
+  appData.relations.push({id:`rel-${Date.now()}`,name,role,topic,meetDate,duration,progress:0});
+  renderRelations(); renderProfile(); initFuseSearch();
+  document.getElementById('form-manual-rel').reset();
+  navTo('network');
+}
+function openEditRelationModal(relId){
+  const rel=appData.relations.find(r=>r.id===relId); if(!rel)return;
+  editingRelationId=relId;
+  document.getElementById('edit-rel-name').value=rel.name;
+  document.getElementById('edit-rel-role').value=rel.role;
+  document.getElementById('edit-rel-topic').value=rel.topic;
+  document.getElementById('edit-rel-date').value=rel.meetDate || new Date().toISOString().slice(0,10);
+  document.getElementById('edit-rel-duration').value=rel.duration || '';
+  document.getElementById('edit-rel-progress').value=rel.progress||0;
+  openModal('modal-edit-relation');
+}
+function saveEditRelation(e){
+  e.preventDefault();
+  const rel=appData.relations.find(r=>r.id===editingRelationId); if(!rel)return;
+  rel.name=document.getElementById('edit-rel-name').value;
+  rel.role=document.getElementById('edit-rel-role').value;
+  rel.topic=document.getElementById('edit-rel-topic').value;
+  rel.meetDate=document.getElementById('edit-rel-date').value;
+  rel.duration=document.getElementById('edit-rel-duration').value.trim() || '-';
+  rel.progress=Math.max(0,Math.min(100,parseInt(document.getElementById('edit-rel-progress').value)||0));
+  closeModal('modal-edit-relation'); renderRelations(); initFuseSearch();
+}
+function deleteRelationFromModal(){
+  if(!editingRelationId)return;
+  if(!confirm('Hapus relasi ini?'))return;
+  appData.relations=appData.relations.filter(r=>r.id!==editingRelationId);
+  closeModal('modal-edit-relation'); renderRelations(); renderProfile(); initFuseSearch();
+}
+
+// ---------- qr & scanner ----------
+function generateMyQR(){
+  const el=document.getElementById('qr-container'); if(!el)return;
+  el.innerHTML='';
+  const note=document.getElementById('qr-fallback-note');
+  const payload=JSON.stringify({name:appData.profile.name,role:appData.profile.role,topic:'General'});
+  try{
+    if(typeof kjua!=='function') throw new Error('kjua not loaded');
+    el.appendChild(kjua({text:payload,size:220,fill:'#1e293b',ecLevel:'H'}));
+    if(note) note.classList.add('hidden');
+  }catch(err){
+    console.error('QR generation failed:',err);
+    el.innerHTML='<div class="w-full h-full flex items-center justify-center text-slate-300"><i class="fa-solid fa-qrcode text-6xl"></i></div>';
+    if(note) note.classList.remove('hidden');
+  }
+}
+function switchRelTab(tab){
+  const form=document.getElementById('form-manual-rel'); const boxScan=document.getElementById('box-scan-rel');
+  if(tab==='manual'){
+    form.classList.remove('hidden'); boxScan.classList.add('hidden');
+    document.getElementById('btn-rel-manual').className='flex-1 py-2 text-xs font-bold rounded-xl bg-white text-slate-900 shadow-sm';
+    document.getElementById('btn-rel-scan').className='flex-1 py-2 text-xs font-bold rounded-xl text-slate-500';
+    if(html5QrcodeScanner) html5QrcodeScanner.clear();
+  } else {
+    form.classList.add('hidden'); boxScan.classList.remove('hidden');
+    document.getElementById('btn-rel-scan').className='flex-1 py-2 text-xs font-bold rounded-xl bg-white text-slate-900 shadow-sm';
+    document.getElementById('btn-rel-manual').className='flex-1 py-2 text-xs font-bold rounded-xl text-slate-500';
+    html5QrcodeScanner=new Html5QrcodeScanner("reader",{fps:10,qrbox:160});
+    html5QrcodeScanner.render((text)=>{
+      try{
+        const data=JSON.parse(text);
+        if(data.name&&data.role){
+          appData.relations.push({id:`rel-${Date.now()}`,name:data.name,role:data.role,topic:data.topic||'General',meetDate:new Date().toISOString().slice(0,10),duration:'-',progress:0});
+          renderRelations(); renderProfile(); initFuseSearch();
+          alert(`Relasi berhasil ditambahkan: ${data.name}`);
+          html5QrcodeScanner.clear(); navTo('network');
+        }
+      }catch(e){alert("Format QR Code tidak sesuai.");}
+    });
+  }
+}
+
+// ---------- export json ----------
+function openJsonExportModal(){document.getElementById('json-preview-area').value=JSON.stringify(appData,null,2); openModal('modal-json-export');}
+function copyJsonToClipboard(){const area=document.getElementById('json-preview-area'); area.select(); navigator.clipboard.writeText(area.value); alert("JSON berhasil disalin! Silakan paste ke file data.json di repo GitHub-mu.");}
+function downloadJsonFile(){
+  const blob=new Blob([JSON.stringify(appData,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download="data.json"; a.click();
+}
+
+// ---------- chat cepat ----------
+let chatCepatOpen=false, chatCepatBusy=false;
+const CHATCEPAT_SYSTEM_PROMPT = `Kamu adalah parser instruksi untuk aplikasi "Learning Plan & Hub". Ubah instruksi bahasa natural dari user (Bahasa Indonesia atau Inggris) menjadi daftar actions JSON yang akan dieksekusi oleh aplikasi.
+
+Balas HANYA dengan satu objek JSON valid, tanpa markdown code fence, tanpa penjelasan tambahan, persis dengan format ini:
+{
+  "actions": [ ... ],
+  "reply": "kalimat konfirmasi singkat dan ramah dalam Bahasa Indonesia"
+}
+
+Setiap item di "actions" harus salah satu bentuk berikut:
+- {"type":"add_plan","title":"...","desc":"..."}
+- {"type":"add_node","planTitle":"...","title":"...","desc":"...","status":"active|completed|locked"}
+- {"type":"add_note","planTitle":"...","nodeTitle":"...","title":"...","content":"..."}
+- {"type":"add_book","title":"...","author":"..."}
+- {"type":"add_book_note","bookTitle":"...","title":"...","content":"..."}
+- {"type":"add_relation","name":"...","role":"...","topic":"..."}
+
+Aturan:
+- Jika user menyebut beberapa hal untuk target yang sama, buat beberapa action dengan referensi title yang sama.
+- planTitle/nodeTitle/bookTitle harus dicocokkan (case-insensitive, boleh sebagian mirip) dengan judul yang sudah ada di data konteks.
+- Jika status topik tidak disebutkan, gunakan "active".
+- Jika instruksi user tidak jelas, kembalikan "actions": [] dan jelaskan singkat di "reply".
+- Jangan sertakan field id.`;
+
+function toggleChatCepat(){
+  chatCepatOpen=!chatCepatOpen;
+  document.getElementById('chatcepat-panel').classList.toggle('hidden', !chatCepatOpen);
+  if(chatCepatOpen){const box=document.getElementById('chatcepat-messages'); box.scrollTop=box.scrollHeight; document.getElementById('chatcepat-input').focus();}
+}
+function appendChatBubble(role,text,isLoading=false){
+  const box=document.getElementById('chatcepat-messages');
+  const id=`ccmsg-${Date.now()}-${Math.floor(Math.random()*10000)}`;
+  const bubble=document.createElement('div');
+  bubble.id=id; bubble.className = role==='user' ? 'cc-bubble-user' : `cc-bubble-assistant${isLoading?' cc-loading':''}`;
+  bubble.textContent=text; box.appendChild(bubble); box.scrollTop=box.scrollHeight;
+  return id;
+}
+function removeChatBubble(id){const el=document.getElementById(id); if(el) el.remove();}
+function buildChatContext(){
+  const plans=appData.learningPlans.map(p=>({title:p.title,nodes:p.nodes.map(n=>({title:n.title,status:n.status}))}));
+  const books=appData.books.map(b=>({title:b.title,author:b.author}));
+  const relations=appData.relations.map(r=>({name:r.name,role:r.role}));
+  return JSON.stringify({plans,books,relations});
+}
+function findByTitleFuzzy(list,title,key='title'){
+  if(!title)return null;
+  const t=title.trim().toLowerCase();
+  let hit=list.find(item=>item[key].toLowerCase()===t);
+  if(hit)return hit;
+  hit=list.find(item=>item[key].toLowerCase().includes(t)||t.includes(item[key].toLowerCase()));
+  return hit||null;
+}
+function applyChatActions(actions){
+  const warnings=[];
+  (actions||[]).forEach(a=>{
+    try{
+      if(a.type==='add_plan'){
+        appData.learningPlans.push({id:`plan-${Date.now()}-${Math.floor(Math.random()*1000)}`,title:a.title||'Learning Plan Baru',desc:a.desc||'',icon:PLAN_ICONS[Math.floor(Math.random()*PLAN_ICONS.length)],color:PLAN_COLORS[Math.floor(Math.random()*PLAN_COLORS.length)],nodes:[]});
+      } else if(a.type==='add_node'){
+        let plan=findByTitleFuzzy(appData.learningPlans,a.planTitle);
+        if(!plan&&appData.learningPlans.length) plan=appData.learningPlans[appData.learningPlans.length-1];
+        if(plan){plan.nodes.push({id:`node-${Date.now()}-${Math.floor(Math.random()*1000)}`,title:a.title||'Topik Baru',desc:a.desc||'',status:a.status||'active',notes:[]});}
+        else warnings.push(`Plan "${a.planTitle||''}" tidak ditemukan.`);
+      } else if(a.type==='add_note'){
+        let plan=findByTitleFuzzy(appData.learningPlans,a.planTitle);
+        if(!plan&&appData.learningPlans.length) plan=appData.learningPlans[appData.learningPlans.length-1];
+        const node=plan?findByTitleFuzzy(plan.nodes,a.nodeTitle):null;
+        if(node){node.notes.push({id:`note-${Date.now()}-${Math.floor(Math.random()*1000)}`,title:a.title||'Catatan',content:a.content||'',date:new Date().toISOString().slice(0,10)});}
+        else warnings.push(`Topik "${a.nodeTitle||''}" tidak ditemukan.`);
+      } else if(a.type==='add_book'){
+        appData.books.push({id:`book-${Date.now()}-${Math.floor(Math.random()*1000)}`,title:a.title||'Buku Baru',author:a.author||'',color:BOOK_COLORS[Math.floor(Math.random()*BOOK_COLORS.length)],notes:[]});
+      } else if(a.type==='add_book_note'){
+        let book=findByTitleFuzzy(appData.books,a.bookTitle);
+        if(!book&&appData.books.length) book=appData.books[appData.books.length-1];
+        if(book){book.notes.push({id:`bn-${Date.now()}-${Math.floor(Math.random()*1000)}`,title:a.title||'Catatan',content:a.content||'',date:new Date().toISOString().slice(0,10)});}
+        else warnings.push(`Buku "${a.bookTitle||''}" tidak ditemukan.`);
+      } else if(a.type==='add_relation'){
+        appData.relations.push({id:`rel-${Date.now()}-${Math.floor(Math.random()*1000)}`,name:a.name||'Tanpa nama',role:a.role||'',topic:a.topic||'',meetDate:new Date().toISOString().slice(0,10),duration:'-',progress:0});
+      }
+    }catch(err){warnings.push('Terjadi error saat memproses salah satu aksi.');}
+  });
+  renderAll();
+  if(currentPlanId){const plan=getPlan(currentPlanId); if(plan) renderPathView(plan);}
+  return warnings;
+}
+async function sendChatCepat(){
+  if(chatCepatBusy)return;
+  const inputEl=document.getElementById('chatcepat-input');
+  const text=inputEl.value.trim(); if(!text)return;
+  appendChatBubble('user',text); inputEl.value=''; chatCepatBusy=true;
+  const loadingId=appendChatBubble('assistant','Memproses...',true);
+  try{
+    const context=buildChatContext();
+    const response=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,system:CHATCEPAT_SYSTEM_PROMPT+"\n\nData saat ini (untuk mencocokkan judul):\n"+context,messages:[{role:"user",content:text}]})
+    });
+    const data=await response.json();
+    const raw=(data.content||[]).map(c=>c.text||'').join('');
+    const clean=raw.replace(/```json|```/g,'').trim();
+    const parsed=JSON.parse(clean);
+    const warnings=applyChatActions(parsed.actions||[]);
+    removeChatBubble(loadingId);
+    let replyText=parsed.reply||'Oke, sudah diproses.';
+    if(warnings.length) replyText+='\n'+warnings.join(' ');
+    appendChatBubble('assistant',replyText);
+  }catch(err){
+    removeChatBubble(loadingId);
+    appendChatBubble('assistant','Maaf, ada error waktu memproses permintaan ini. Coba tulis ulang dengan lebih jelas ya.');
+    console.error('Chat Cepat error:',err);
+  }finally{chatCepatBusy=false;}
+}
+</script>
+</body>
+</html>
