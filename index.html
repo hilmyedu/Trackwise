@@ -8,6 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/kjua@0.9.0/dist/kjua.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
 <style>
@@ -206,6 +207,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:#2
 .color-dot{width:34px;height:34px;border-radius:9999px;cursor:pointer;border:3px solid transparent;}
 .color-dot.selected{border-color:var(--ink);}
 
+/* Avatar picker */
+.avatar-pick{width:56px;height:56px;border-radius:16px;overflow:hidden;cursor:pointer;border:3px solid transparent;background:#f1f0ea;flex-shrink:0;}
+.avatar-pick img{width:100%;height:100%;object-fit:cover;display:block;}
+.avatar-pick.selected{border-color:var(--ink);box-shadow:0 0 0 2px #fff, 0 0 0 4px var(--ink);}
+
 /* Profile page */
 .profile-hero{
   border-radius:28px;padding:32px;color:#fff;position:relative;overflow:hidden;
@@ -231,7 +237,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:#2
 <body class="pb-28 md:pb-10 pt-4 md:pt-6">
 
 <!-- TOP HEADER -->
-<header class="max-w-6xl mx-auto px-4 mb-6 flex items-center justify-between">
+<header class="max-w-[1400px] mx-auto px-6 mb-6 flex items-center justify-between">
   <div class="flex items-center space-x-2">
     <div class="w-10 h-10 bg-slate-900 rounded-2xl flex items-center justify-center text-white font-extrabold text-lg">TW</div>
   </div>
@@ -266,7 +272,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:#2
   </div>
 </div>
 
-<main class="max-w-6xl mx-auto px-4">
+<main class="max-w-[1400px] mx-auto px-6">
 
   <!-- ================= PAGE 1: LEARNING PLAN ================= -->
   <section id="page-learning" class="page-content">
@@ -290,7 +296,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:#2
     </div>
 
     <div id="view-path" class="hidden">
-      <div class="flex items-center justify-between mb-6 gap-3">
+      <div class="flex items-center justify-between mb-6 gap-3 flex-wrap">
         <div class="flex items-center gap-3">
           <button onclick="showPlanList()" class="w-9 h-9 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-500 hover:text-slate-900"><i class="fa-solid fa-arrow-left text-xs"></i></button>
           <div>
@@ -298,7 +304,18 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:#2
             <p id="path-view-desc" class="text-xs text-slate-500 mt-0.5"></p>
           </div>
         </div>
-        <button onclick="openAddNodeModal()" class="bg-slate-900 text-white text-xs font-bold px-3.5 py-2 rounded-xl hover:bg-slate-800 transition whitespace-nowrap">+ Tambah Topik</button>
+        <div class="flex items-center gap-2">
+          <div class="relative">
+            <button onclick="toggleDownloadMenu()" id="download-menu-btn" class="bg-white border border-slate-200 text-slate-700 text-xs font-bold px-3.5 py-2 rounded-xl hover:border-slate-900 transition inline-flex items-center gap-2 whitespace-nowrap">
+              <i class="fa-solid fa-download"></i> Download
+            </button>
+            <div id="download-menu" class="hidden absolute right-0 mt-2 w-60 bg-white rounded-xl shadow-lg border border-slate-200 z-20 overflow-hidden">
+              <button onclick="downloadPlanPNG()" class="w-full text-left px-4 py-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2"><i class="fa-solid fa-image text-indigo-500 w-4"></i> PNG Peta Jalur (4:3)</button>
+              <button onclick="downloadPlanNotesWord()" class="w-full text-left px-4 py-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-t border-slate-100"><i class="fa-solid fa-file-word text-blue-600 w-4"></i> Word Semua Catatan</button>
+            </div>
+          </div>
+          <button onclick="openAddNodeModal()" class="bg-slate-900 text-white text-xs font-bold px-3.5 py-2 rounded-xl hover:bg-slate-800 transition whitespace-nowrap">+ Tambah Topik</button>
+        </div>
       </div>
       <div class="dei-card p-8 border border-slate-200/60">
         <div id="hex-path-container" class="relative flex flex-col items-center gap-10 py-4"></div>
@@ -323,7 +340,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:#2
         <div id="network-pagination" class="flex justify-center items-center gap-1.5 mt-6"></div>
       </div>
       <div class="dei-card p-5 border border-slate-200/60 h-fit">
-        <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2 mb-4">Leaderboard <span>🏆</span></h3>
+        <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2 mb-4">Leaderboard <span></span></h3>
+        <p class="text-[10px] text-slate-400 -mt-2 mb-3">Diurutkan dari yang paling sering berinteraksi</p>
         <div id="leaderboard-list" class="space-y-1.5"></div>
       </div>
     </div>
@@ -356,9 +374,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:#2
           <div>
             <h2 id="profile-name" class="serif font-extrabold text-2xl">Moch Hilmy Fawwaz</h2>
             <p id="profile-role" class="text-xs text-white/70 mt-1">System Architect & Developer</p>
-            <button onclick="openEditProfileModal()" class="mt-3 bg-white/15 hover:bg-white/25 text-white text-[11px] font-bold px-3.5 py-2 rounded-xl transition inline-flex items-center gap-2">
-              <i class="fa-solid fa-pen text-[10px]"></i> Edit Profil
-            </button>
+            <div class="mt-3 flex items-center gap-2 flex-wrap">
+              <button onclick="openEditProfileModal()" class="bg-white/15 hover:bg-white/25 text-white text-[11px] font-bold px-3.5 py-2 rounded-xl transition inline-flex items-center gap-2">
+                <i class="fa-solid fa-pen text-[10px]"></i> Edit Profil
+              </button>
+              <button onclick="openQrModal()" class="bg-amber-300 hover:bg-amber-400 text-slate-900 text-[11px] font-bold px-3.5 py-2 rounded-xl transition inline-flex items-center gap-2">
+                <i class="fa-solid fa-qrcode text-[10px]"></i> Lihat QR Saya
+              </button>
+            </div>
           </div>
         </div>
         <div class="flex gap-3">
@@ -378,17 +401,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:#2
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="dei-card p-6 border border-slate-200/60 text-center flex flex-col items-center">
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-4">Tunjukkan QR Ini Ke Rekan</p>
-        <div class="bg-white p-4 rounded-3xl border-2 border-slate-100 shadow-sm inline-block">
-          <div id="qr-container" class="flex justify-center items-center" style="width:220px;height:220px;"></div>
-        </div>
-        <p id="qr-fallback-note" class="hidden text-[10px] text-red-500 font-semibold mt-3">QR tidak dapat dimuat. Coba muat ulang halaman.</p>
-        <p class="text-[10px] text-slate-400 mt-4">Rekan bisa scan QR ini untuk otomatis tersimpan sebagai relasi.</p>
-      </div>
-
-      <div class="dei-card p-6 border border-slate-200/60">
+    <div class="grid grid-cols-1 gap-6">
+      <div class="dei-card p-6 border border-slate-200/60 w-full">
         <h3 class="font-bold text-sm mb-4 text-slate-800">Tambah Relasi Baru</h3>
         <div class="flex gap-2 mb-4 bg-slate-100 p-1 rounded-2xl">
           <button onclick="switchRelTab('manual')" id="btn-rel-manual" class="flex-1 py-2 text-xs font-bold rounded-xl bg-white text-slate-900 shadow-sm">Input Manual</button>
@@ -398,7 +412,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:#2
         <form id="form-manual-rel" onsubmit="saveRelation(event)" class="space-y-3">
           <div>
             <label class="text-[11px] text-slate-500 font-semibold">Nama Lengkap</label>
-            <input type="text" id="input-rel-name" required class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+            <input type="text" id="input-rel-name" required oninput="refreshAvatarPicker('add')" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
           </div>
           <div>
             <label class="text-[11px] text-slate-500 font-semibold">Peran / Jabatan</label>
@@ -408,15 +422,28 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:#2
             <label class="text-[11px] text-slate-500 font-semibold">Topik Diskusi Utama</label>
             <input type="text" id="input-rel-topic" required placeholder="misal: Flutter, AI Architecture" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
           </div>
+          <div>
+            <div class="flex items-center justify-between">
+              <label class="text-[11px] text-slate-500 font-semibold">Pilih Avatar (klik yang paling mirip)</label>
+              <button type="button" onclick="rerollAvatarPicker('add')" class="text-[10px] font-bold text-indigo-600"><i class="fa-solid fa-shuffle mr-1"></i>Acak Ulang</button>
+            </div>
+            <div id="add-avatar-picker" class="flex flex-wrap gap-2 mt-2"></div>
+            <input type="hidden" id="input-rel-avatar-seed" value="">
+            <input type="hidden" id="input-rel-avatar-style" value="adventurer">
+          </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="text-[11px] text-slate-500 font-semibold">Tanggal Bertemu</label>
+              <label class="text-[11px] text-slate-500 font-semibold">Tanggal Pertemuan</label>
               <input type="date" id="input-rel-date" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
             </div>
             <div>
-              <label class="text-[11px] text-slate-500 font-semibold">Durasi Diskusi</label>
-              <input type="text" id="input-rel-duration" placeholder="misal: 30 min" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+              <label class="text-[11px] text-slate-500 font-semibold">Jam Pertemuan</label>
+              <input type="time" id="input-rel-time" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
             </div>
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-500 font-semibold">Lokasi Pertemuan</label>
+            <input type="text" id="input-rel-location" placeholder="misal: Kampus, Zoom" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
           </div>
           <button type="submit" class="w-full bg-slate-900 text-white text-xs font-bold py-3 rounded-xl shadow-sm hover:bg-slate-800 transition">Simpan Relasi</button>
         </form>
@@ -594,7 +621,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:#2
 <div id="modal-book-detail" class="hidden fixed inset-0 modal-backdrop z-[60] flex items-center justify-center p-4">
   <div class="dei-card p-6 max-w-lg w-full bg-white border border-slate-200 max-h-[85vh] flex flex-col">
     <div class="flex gap-4 mb-1">
-      <div id="book-detail-cover" class="w-16 shrink-0 book-cover !cursor-default"></div>
+      <div id="book-detail-cover" class="w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center text-white font-extrabold text-xl shadow-sm"></div>
       <div class="flex-1 min-w-0">
         <div class="flex justify-between items-start">
           <div>
@@ -644,7 +671,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:#2
     <form onsubmit="saveEditRelation(event)" class="space-y-3">
       <div>
         <label class="text-[11px] text-slate-500 font-semibold">Nama Lengkap</label>
-        <input type="text" id="edit-rel-name" required class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+        <input type="text" id="edit-rel-name" required oninput="refreshAvatarPicker('edit')" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
       </div>
       <div>
         <label class="text-[11px] text-slate-500 font-semibold">Peran / Jabatan</label>
@@ -654,25 +681,68 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:#2
         <label class="text-[11px] text-slate-500 font-semibold">Topik Diskusi Utama</label>
         <input type="text" id="edit-rel-topic" required class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
       </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="text-[11px] text-slate-500 font-semibold">Tanggal Bertemu</label>
-          <input type="date" id="edit-rel-date" required class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
-        </div>
-        <div>
-          <label class="text-[11px] text-slate-500 font-semibold">Durasi Diskusi</label>
-          <input type="text" id="edit-rel-duration" required placeholder="misal: 45 min" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
-        </div>
-      </div>
       <div>
-        <label class="text-[11px] text-slate-500 font-semibold">Progress Leaderboard (%)</label>
-        <input type="number" id="edit-rel-progress" min="0" max="100" required class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-900">
+        <div class="flex items-center justify-between">
+          <label class="text-[11px] text-slate-500 font-semibold">Pilih Avatar (klik yang paling mirip)</label>
+          <button type="button" onclick="rerollAvatarPicker('edit')" class="text-[10px] font-bold text-indigo-600"><i class="fa-solid fa-shuffle mr-1"></i>Acak Ulang</button>
+        </div>
+        <div id="edit-avatar-picker" class="flex flex-wrap gap-2 mt-2"></div>
+        <input type="hidden" id="edit-rel-avatar-seed" value="">
+        <input type="hidden" id="edit-rel-avatar-style" value="adventurer">
       </div>
+      <p class="text-[10px] text-slate-400">Riwayat pertemuan (tanggal, jam, lokasi) dikelola lewat kartu peer di halaman Peers — klik kartunya untuk membuka.</p>
       <div class="flex gap-2 pt-2">
         <button type="button" onclick="deleteRelationFromModal()" class="flex-1 bg-red-50 text-red-600 text-xs font-bold py-3 rounded-xl hover:bg-red-100 transition"><i class="fa-solid fa-trash mr-1"></i> Hapus</button>
         <button type="submit" class="flex-1 bg-slate-900 text-white text-xs font-bold py-3 rounded-xl shadow-sm hover:bg-slate-800 transition">Simpan</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- MODAL: PEER DETAIL / RIWAYAT PERTEMUAN -->
+<div id="modal-peer-detail" class="hidden fixed inset-0 modal-backdrop z-[60] flex items-center justify-center p-4">
+  <div class="dei-card p-6 max-w-lg w-full bg-white border border-slate-200 max-h-[85vh] flex flex-col">
+    <div class="flex justify-between items-start mb-1">
+      <div class="flex items-center gap-3">
+        <div id="peer-detail-avatar" class="w-12 h-12 rounded-2xl overflow-hidden flex items-center justify-center font-extrabold text-lg bg-slate-100"></div>
+        <div>
+          <h3 id="peer-detail-name" class="font-bold text-sm text-slate-900"></h3>
+          <p id="peer-detail-role" class="text-[11px] text-slate-400"></p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="closeModal('modal-peer-detail'); openEditRelationModal(currentPeerId)" class="text-slate-400 hover:text-slate-900"><i class="fa-solid fa-pen"></i></button>
+        <button onclick="closeModal('modal-peer-detail')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+    <p id="peer-detail-topic" class="text-[11px] font-bold text-indigo-600 mt-2"></p>
+
+    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-4 mb-2">Tambah Pertemuan Baru</p>
+    <form onsubmit="addMeeting(event)" class="grid grid-cols-2 gap-2 mb-4">
+      <input type="date" id="meeting-date" required class="bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900">
+      <input type="time" id="meeting-time" class="bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900">
+      <input type="text" id="meeting-location" placeholder="Lokasi (misal: Kampus, Zoom)" class="col-span-2 bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900">
+      <button type="submit" class="col-span-2 bg-amber-300 hover:bg-amber-400 text-slate-900 text-xs font-bold py-2.5 rounded-xl transition">+ Tambah Pertemuan</button>
+    </form>
+
+    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Riwayat Pertemuan (<span id="peer-meeting-count">0</span>x)</p>
+    <div id="peer-meetings-list" class="space-y-2 overflow-y-auto pr-1 no-scrollbar"></div>
+  </div>
+</div>
+
+<!-- MODAL: QR PROFIL -->
+<div id="modal-qr" class="hidden fixed inset-0 modal-backdrop z-[60] flex items-center justify-center p-4">
+  <div class="dei-card p-6 max-w-sm w-full bg-white border border-slate-200 text-center">
+    <div class="flex justify-between items-center mb-2">
+      <h3 class="font-bold text-sm text-slate-900">QR Profil Saya</h3>
+      <button onclick="closeModal('modal-qr')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-4">Tunjukkan QR Ini Ke Rekan</p>
+    <div class="bg-white p-4 rounded-3xl border-2 border-slate-100 shadow-sm inline-block">
+      <div id="qr-container" class="flex justify-center items-center" style="width:220px;height:220px;"></div>
+    </div>
+    <p id="qr-fallback-note" class="hidden text-[10px] text-red-500 font-semibold mt-3">QR tidak dapat dimuat. Coba muat ulang halaman.</p>
+    <p class="text-[10px] text-slate-400 mt-4">Rekan bisa scan QR ini untuk otomatis tersimpan sebagai relasi.</p>
   </div>
 </div>
 
@@ -762,11 +832,24 @@ let appData = {
     { id:"book-6", title:"Mist and Fury", author:"Sarah J. Maas", color:"#ec4899", notes:[] }
   ],
   relations: [
-    { id:"rel-1", name:"Michael Kopfler", role:"Project Manager", topic:"Meet the Patient", meetDate:"2026-03-19", duration:"45 min", progress:75 },
-    { id:"rel-2", name:"Alice Koller", role:"Programmer", topic:"Topographic Anatomy", meetDate:"2026-03-21", duration:"16 min", progress:73 },
-    { id:"rel-3", name:"Peter Dinklage", role:"CEO", topic:"Preparation, Sawing", meetDate:"2026-03-22", duration:"28 min", progress:69 },
-    { id:"rel-4", name:"Julia Berger", role:"CEO", topic:"Diagnosing a Patient", meetDate:"2026-03-24", duration:"45 min", progress:68 },
-    { id:"rel-5", name:"John Wick", role:"Web Designer", topic:"Potions or Injections", meetDate:"2026-03-26", duration:"56 min", progress:58 }
+    { id:"rel-1", name:"Michael Kopfler", role:"Project Manager", topic:"Meet the Patient", avatarSeed:"Michael Kopfler", avatarStyle:"adventurer", meetings:[
+      {date:"2026-03-19", time:"09:00", location:"Kampus"},
+      {date:"2026-04-02", time:"10:00", location:"Zoom"},
+      {date:"2026-04-16", time:"13:00", location:"Kampus"}
+    ]},
+    { id:"rel-2", name:"Alice Koller", role:"Programmer", topic:"Topographic Anatomy", avatarSeed:"Alice Koller", avatarStyle:"adventurer", meetings:[
+      {date:"2026-03-21", time:"14:00", location:"Lab"}
+    ]},
+    { id:"rel-3", name:"Peter Dinklage", role:"CEO", topic:"Preparation, Sawing", avatarSeed:"Peter Dinklage", avatarStyle:"adventurer", meetings:[
+      {date:"2026-03-22", time:"11:00", location:"Kantor"},
+      {date:"2026-03-29", time:"11:00", location:"Kantor"}
+    ]},
+    { id:"rel-4", name:"Julia Berger", role:"CEO", topic:"Diagnosing a Patient", avatarSeed:"Julia Berger", avatarStyle:"adventurer", meetings:[
+      {date:"2026-03-24", time:"09:30", location:"Zoom"}
+    ]},
+    { id:"rel-5", name:"John Wick", role:"Web Designer", topic:"Potions or Injections", avatarSeed:"John Wick", avatarStyle:"adventurer", meetings:[
+      {date:"2026-03-26", time:"16:00", location:"Kafe"}
+    ]}
   ]
 };
 
@@ -774,12 +857,13 @@ const BOOK_COLORS = ["#ef4444","#f59e0b","#10b981","#0ea5e9","#6366f1","#8b5cf6"
 const PLAN_ICONS = ["📁","⚡","📖","☕","✈️","💙","🎮","🎵","💻","🍔","🚀","🎨","🎓","🩺","🧠","💡","🗣️"];
 const PLAN_COLORS = ["#f6c453","#22c55e","#ec4899","#8b5cf6","#0ea5e9","#f97316","#84cc16","#334155"];
 const AVATAR_COLORS = ["#f6c453","#8b5cf6","#0ea5e9","#ec4899","#10b981","#f97316"];
+const AVATAR_STYLES = ["adventurer","personas","micah","notionists","bottts","thumbs"];
 const PAGE_SIZE = 6;
 const NODE_PAGE_SIZE = 4;
 const NOTE_PAGE_SIZE = 4;
 
 let fuseInstance=null, html5QrcodeScanner=null;
-let currentPlanId=null, currentNodeId=null, currentBookId=null;
+let currentPlanId=null, currentNodeId=null, currentBookId=null, currentPeerId=null;
 let editingPlanId=null, editingNodeId=null, editingNoteId=null, editingBookId=null, editingBookNoteId=null, editingRelationId=null;
 
 let pgPlan=1, pgNode=1, pgNetwork=1, pgBooks=1, pgNotes=1, pgBookNotes=1;
@@ -789,7 +873,15 @@ document.addEventListener("DOMContentLoaded", () => {
   generateMyQR();
   buildBookColorSwatches();
   buildProfileColorSwatches();
+  refreshAvatarPicker('add');
   initDockNav();
+  document.addEventListener('click', (e)=>{
+    const menu=document.getElementById('download-menu');
+    const btn=document.getElementById('download-menu-btn');
+    if(menu && !menu.classList.contains('hidden') && !menu.contains(e.target) && e.target!==btn && !btn.contains(e.target)){
+      menu.classList.add('hidden');
+    }
+  });
 });
 
 function renderAll(){
@@ -804,6 +896,7 @@ function renderAll(){
 function getPlan(id){return appData.learningPlans.find(p=>p.id===id);}
 function getNode(planId,nodeId){return getPlan(planId)?.nodes.find(n=>n.id===nodeId);}
 function getBook(id){return appData.books.find(b=>b.id===id);}
+function getRelation(id){return appData.relations.find(r=>r.id===id);}
 function statusMeta(status){
   if(status==='completed')return{badge:'bg-emerald-100 text-emerald-700',hex:'bg-emerald-500 text-white',icon:'fa-check'};
   if(status==='active')return{badge:'bg-purple-100 text-purple-700',hex:'bg-amber-400 text-slate-900',icon:'fa-book-open'};
@@ -922,19 +1015,10 @@ function showPathView(planId){
   document.getElementById('path-view-desc').textContent=plan.desc||'';
   renderPathView(plan);
 }
-function renderPathView(plan){
-  const box=document.getElementById('hex-path-container');
-  const {items,page,totalPages}=paginate(plan.nodes,pgNode,NODE_PAGE_SIZE);
-  pgNode=page;
-  if(plan.nodes.length===0){
-    box.innerHTML=`<p class="text-xs text-slate-400 text-center py-10">Belum ada topik. Klik "+ Tambah Topik" untuk membuat node pertama.</p>`;
-    document.getElementById('node-pagination').innerHTML='';
-    return;
-  }
-  box.innerHTML=`<div class="path-line"></div>`+items.map((node,i)=>{
-    const meta=statusMeta(node.status);
-    const alignEnd=i%2===1;
-    return `
+function nodeRowHTML(node,i,plan){
+  const meta=statusMeta(node.status);
+  const alignEnd=i%2===1;
+  return `
     <div class="relative z-10 w-full flex ${alignEnd?'justify-end':'justify-start'} md:px-16">
       <div class="group flex items-center gap-4 ${alignEnd?'flex-row-reverse text-right':''}">
         <div onclick="openNodeNotes('${plan.id}','${node.id}')" class="hex-node ${meta.hex} shadow-md ring-4 ring-[#f3f1ea] relative">
@@ -951,7 +1035,17 @@ function renderPathView(plan){
         </div>
       </div>
     </div>`;
-  }).join('');
+}
+function renderPathView(plan){
+  const box=document.getElementById('hex-path-container');
+  const {items,page,totalPages}=paginate(plan.nodes,pgNode,NODE_PAGE_SIZE);
+  pgNode=page;
+  if(plan.nodes.length===0){
+    box.innerHTML=`<p class="text-xs text-slate-400 text-center py-10">Belum ada topik. Klik "+ Tambah Topik" untuk membuat node pertama.</p>`;
+    document.getElementById('node-pagination').innerHTML='';
+    return;
+  }
+  box.innerHTML=`<div class="path-line"></div>`+items.map((node,i)=>nodeRowHTML(node,i,plan)).join('');
   renderPagination('node-pagination', page, totalPages, 'gotoNodePage');
 }
 function gotoNodePage(p){pgNode=p; renderPathView(getPlan(currentPlanId));}
@@ -973,8 +1067,13 @@ function formatDayMonth(dateStr){
   if(isNaN(d)) return {day:"--",month:"—"};
   return {day:String(d.getDate()).padStart(2,'0'), month:MONTHS_ID[d.getMonth()]};
 }
-function peerAvatarUrl(name){
-  return `https://api.dicebear.com/8.x/adventurer/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,ffd5dc,ffdfbf,d1d4f9`;
+function peerAvatarUrl(seed,style){
+  style=style||'adventurer';
+  return `https://api.dicebear.com/8.x/${style}/svg?seed=${encodeURIComponent(seed)}&backgroundColor=b6e3f4,c0aede,ffd5dc,ffdfbf,d1d4f9`;
+}
+function relationLastMeeting(rel){
+  if(!rel.meetings||rel.meetings.length===0) return null;
+  return [...rel.meetings].sort((a,b)=> new Date(b.date+"T"+(b.time||"00:00")) - new Date(a.date+"T"+(a.time||"00:00")))[0];
 }
 function waveformHTML(color){
   const heights=[5,10,7,14,8,11,6];
@@ -993,11 +1092,13 @@ function renderRelations(){
   box.innerHTML=items.map((r,idx)=>{
     const fallbackBg=AVATAR_BG[idx%AVATAR_BG.length];
     const accent=PEER_ACCENTS[idx%PEER_ACCENTS.length];
-    const {day,month}=formatDayMonth(r.meetDate);
-    const avatarUrl=peerAvatarUrl(r.name);
+    const last=relationLastMeeting(r);
+    const {day,month}=formatDayMonth(last?last.date:null);
+    const avatarUrl=peerAvatarUrl(r.avatarSeed||r.name, r.avatarStyle);
+    const meetCount=(r.meetings||[]).length;
     return `
-    <div class="group peer-day-card">
-      <div class="absolute top-3 right-3 flex gap-1.5 card-actions z-20"><button onclick="openEditRelationModal('${r.id}')" class="icon-btn text-slate-600"><i class="fa-solid fa-pen"></i></button></div>
+    <div class="group peer-day-card" onclick="openPeerDetail('${r.id}')" style="cursor:pointer;">
+      <div class="absolute top-3 right-3 flex gap-1.5 card-actions z-20"><button onclick="event.stopPropagation(); openEditRelationModal('${r.id}')" class="icon-btn text-slate-600"><i class="fa-solid fa-pen"></i></button></div>
       <div class="peer-avatar-wrap">
         <img src="${avatarUrl}" alt="${r.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
         <div class="peer-avatar-fallback" style="display:none; background:${fallbackBg};">${r.name.charAt(0)}</div>
@@ -1008,7 +1109,7 @@ function renderRelations(){
       <div class="peer-topic-pill" style="background:${accent.bg};">
         <p class="text-[11px] font-bold" style="color:${accent.text};">${r.topic}</p>
         <div class="flex items-center justify-between mt-1.5">
-          <span class="text-[10px] font-semibold flex items-center gap-1" style="color:${accent.text}; opacity:.75;"><i class="fa-regular fa-clock"></i> ${r.duration||'-'}</span>
+          <span class="text-[10px] font-semibold flex items-center gap-1" style="color:${accent.text}; opacity:.75;"><i class="fa-solid fa-people-arrows"></i> ${meetCount}x bertemu</span>
           ${waveformHTML(accent.text)}
         </div>
       </div>
@@ -1019,18 +1120,111 @@ function renderRelations(){
 }
 function gotoNetworkPage(p){pgNetwork=p; renderRelations();}
 function renderLeaderboard(){
-  const sorted=[...appData.relations].sort((a,b)=>(b.progress||0)-(a.progress||0));
+  const sorted=[...appData.relations].sort((a,b)=>(b.meetings||[]).length-(a.meetings||[]).length);
   const box=document.getElementById('leaderboard-list');
   if(sorted.length===0){box.innerHTML='';return;}
-  box.innerHTML=sorted.slice(0,8).map((r,i)=>`
-    <div class="lb-row ${i===0?'bg-amber-50':''}">
+  const maxCount=Math.max(1, ...sorted.map(r=>(r.meetings||[]).length));
+  box.innerHTML=sorted.slice(0,8).map((r,i)=>{
+    const count=(r.meetings||[]).length;
+    const pct=Math.round((count/maxCount)*100);
+    return `
+    <div class="lb-row ${i===0?'bg-amber-50':''} cursor-pointer" onclick="openPeerDetail('${r.id}')">
       <div class="lb-rank ${i===0?'gold':''}">${i+1}</div>
       <div class="flex-1 min-w-0">
         <p class="text-[11px] font-bold text-slate-800 truncate">${r.name}</p>
-        <div class="lb-bar-track"><div class="lb-bar-fill" style="width:${r.progress||0}%"></div></div>
+        <div class="lb-bar-track"><div class="lb-bar-fill" style="width:${pct}%"></div></div>
       </div>
-      <span class="text-[10px] font-extrabold text-slate-500">${r.progress||0}%</span>
+      <span class="text-[10px] font-extrabold text-slate-500">${count}x</span>
+    </div>`;
+  }).join('');
+}
+
+// ---------- peer detail / meetings ----------
+function openPeerDetail(relId){
+  const r=getRelation(relId); if(!r)return;
+  currentPeerId=relId;
+  document.getElementById('peer-detail-avatar').innerHTML=`<img src="${peerAvatarUrl(r.avatarSeed||r.name,r.avatarStyle)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.textContent='${r.name.charAt(0)}'">`;
+  document.getElementById('peer-detail-name').textContent=r.name;
+  document.getElementById('peer-detail-role').textContent=r.role;
+  document.getElementById('peer-detail-topic').textContent=r.topic;
+  document.getElementById('meeting-date').value='';
+  document.getElementById('meeting-time').value='';
+  document.getElementById('meeting-location').value='';
+  renderPeerMeetings(r);
+  openModal('modal-peer-detail');
+}
+function renderPeerMeetings(r){
+  const list=(r.meetings||[]).slice().sort((a,b)=> new Date(b.date+"T"+(b.time||"00:00")) - new Date(a.date+"T"+(a.time||"00:00")));
+  document.getElementById('peer-meeting-count').textContent=list.length;
+  const box=document.getElementById('peer-meetings-list');
+  if(list.length===0){box.innerHTML=`<p class="text-xs text-slate-400 text-center py-6">Belum ada riwayat pertemuan.</p>`;return;}
+  box.innerHTML=list.map((m,i)=>{
+    const {day,month}=formatDayMonth(m.date);
+    return `<div class="flex items-center gap-3 bg-slate-50 rounded-xl p-3">
+      <div class="w-10 h-10 rounded-lg bg-white border border-slate-200 flex flex-col items-center justify-center flex-shrink-0">
+        <span class="text-[13px] font-extrabold text-slate-800 leading-none">${day}</span>
+        <span class="text-[8px] font-bold text-slate-400">${month}</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[11px] font-bold text-slate-700">${m.time?m.time+' WIB':'Waktu tidak diset'}</p>
+        <p class="text-[10px] text-slate-400 truncate">${m.location||'Lokasi tidak diset'}</p>
+      </div>
+      <button onclick="deleteMeeting('${r.id}',${appData.relations.indexOf(r)})" class="hidden"></button>
+    </div>`;
+  }).join('');
+}
+function addMeeting(e){
+  e.preventDefault();
+  const r=getRelation(currentPeerId); if(!r)return;
+  const date=document.getElementById('meeting-date').value;
+  const time=document.getElementById('meeting-time').value;
+  const location=document.getElementById('meeting-location').value.trim();
+  if(!date)return;
+  if(!r.meetings) r.meetings=[];
+  r.meetings.push({date,time,location});
+  document.getElementById('meeting-date').value='';
+  document.getElementById('meeting-time').value='';
+  document.getElementById('meeting-location').value='';
+  renderPeerMeetings(r);
+  renderRelations();
+  openJsonExportModal();
+}
+
+// ---------- avatar picker ----------
+function buildAvatarCandidates(nameSeed){
+  const seed=(nameSeed&&nameSeed.trim())?nameSeed.trim():('peer-'+Date.now());
+  return AVATAR_STYLES.map((style,i)=>({style, seed: seed+'-'+i, url: peerAvatarUrl(seed+'-'+i, style)}));
+}
+function renderAvatarPicker(prefix, candidates, selectedSeed, selectedStyle){
+  const box=document.getElementById(`${prefix}-avatar-picker`);
+  box.innerHTML=candidates.map(c=>`
+    <div class="avatar-pick ${(c.seed===selectedSeed&&c.style===selectedStyle)?'selected':''}" data-seed="${c.seed}" data-style="${c.style}" onclick="selectAvatar('${prefix}','${c.seed}','${c.style}')">
+      <img src="${c.url}" alt="avatar option">
     </div>`).join('');
+}
+function selectAvatar(prefix, seed, style){
+  if(prefix==='add'){ document.getElementById('input-rel-avatar-seed').value=seed; document.getElementById('input-rel-avatar-style').value=style; }
+  else { document.getElementById('edit-rel-avatar-seed').value=seed; document.getElementById('edit-rel-avatar-style').value=style; }
+  document.querySelectorAll(`#${prefix}-avatar-picker .avatar-pick`).forEach(el=>{
+    el.classList.toggle('selected', el.dataset.seed===seed && el.dataset.style===style);
+  });
+}
+function refreshAvatarPicker(prefix){
+  const nameInput = prefix==='add' ? document.getElementById('input-rel-name') : document.getElementById('edit-rel-name');
+  const candidates = buildAvatarCandidates(nameInput.value);
+  const selSeedEl = prefix==='add' ? document.getElementById('input-rel-avatar-seed') : document.getElementById('edit-rel-avatar-seed');
+  const selStyleEl = prefix==='add' ? document.getElementById('input-rel-avatar-style') : document.getElementById('edit-rel-avatar-style');
+  if(!selSeedEl.value){ selSeedEl.value=candidates[0].seed; selStyleEl.value=candidates[0].style; }
+  renderAvatarPicker(prefix, candidates, selSeedEl.value, selStyleEl.value);
+}
+function rerollAvatarPicker(prefix){
+  const nameInput = prefix==='add' ? document.getElementById('input-rel-name') : document.getElementById('edit-rel-name');
+  const seedBase = (nameInput.value||'peer') + '-' + Math.floor(Math.random()*99999);
+  const candidates = buildAvatarCandidates(seedBase);
+  const selSeedEl = prefix==='add' ? document.getElementById('input-rel-avatar-seed') : document.getElementById('edit-rel-avatar-seed');
+  const selStyleEl = prefix==='add' ? document.getElementById('input-rel-avatar-style') : document.getElementById('edit-rel-avatar-style');
+  selSeedEl.value=candidates[0].seed; selStyleEl.value=candidates[0].style;
+  renderAvatarPicker(prefix, candidates, selSeedEl.value, selStyleEl.value);
 }
 
 // ---------- books ----------
@@ -1124,7 +1318,7 @@ function initFuseSearch(){
     items.push({type:'Buku',title:b.title,desc:b.author,bookId:b.id});
     b.notes.forEach(n=>items.push({type:'Catatan Buku',title:n.title,desc:n.content,bookId:b.id}));
   });
-  appData.relations.forEach(r=>items.push({type:'Relasi/Peer',title:r.name,desc:`${r.role} - ${r.topic}`}));
+  appData.relations.forEach(r=>items.push({type:'Relasi/Peer',title:r.name,desc:`${r.role} - ${r.topic}`,relId:r.id}));
   fuseInstance=new Fuse(items,{keys:['title','desc','type'],threshold:0.3});
 }
 function handleSearch(q){
@@ -1135,10 +1329,11 @@ function handleSearch(q){
   panel.classList.remove('hidden');
   if(results.length===0){list.innerHTML=`<p class="text-xs text-slate-400 py-4 text-center">Data tidak ditemukan.</p>`;return;}
   list.innerHTML=results.map(r=>{
-    const clickable=r.item.planId||r.item.bookId;
+    const clickable=r.item.planId||r.item.bookId||r.item.relId;
     let action='';
     if(r.item.planId) action=`onclick="toggleMobileSearch(false); showPathView('${r.item.planId}')"`;
     if(r.item.bookId) action=`onclick="toggleMobileSearch(false); navTo('books'); openBookDetail('${r.item.bookId}')"`;
+    if(r.item.relId) action=`onclick="toggleMobileSearch(false); navTo('network'); openPeerDetail('${r.item.relId}')"`;
     return `<div class="p-3 bg-slate-50 border border-slate-200 rounded-xl ${clickable?'cursor-pointer hover:border-slate-900':''}" ${action}>
       <span class="text-[9px] font-bold uppercase text-indigo-600 tracking-wider">${r.item.type}</span>
       <h4 class="text-xs font-bold text-slate-800">${r.item.title}</h4>
@@ -1331,7 +1526,9 @@ function deleteBookFromModal(){
 function openBookDetail(bookId){
   currentBookId=bookId; pgBookNotes=1;
   const book=getBook(bookId); if(!book)return;
-  document.getElementById('book-detail-cover').innerHTML=bookCoverHTML(book,false).replace('<div class="book-cover"','<div class="book-cover !cursor-default"');
+  const coverEl=document.getElementById('book-detail-cover');
+  coverEl.style.background=book.color||'#334155';
+  coverEl.textContent=(book.title||'?').charAt(0).toUpperCase();
   document.getElementById('book-detail-title').textContent=book.title;
   document.getElementById('book-detail-author').textContent=book.author?`oleh ${book.author}`:'Penulis tidak diketahui';
   renderBookNotesList(book);
@@ -1392,37 +1589,49 @@ function deleteBookNoteFromModal(){
 // ---------- relations crud ----------
 function saveRelation(e){
   e.preventDefault();
-  const name=document.getElementById('input-rel-name').value;
-  const role=document.getElementById('input-rel-role').value;
-  const topic=document.getElementById('input-rel-topic').value;
-  const meetDate=document.getElementById('input-rel-date').value || new Date().toISOString().slice(0,10);
-  const duration=document.getElementById('input-rel-duration').value.trim() || '-';
-  appData.relations.push({id:`rel-${Date.now()}`,name,role,topic,meetDate,duration,progress:0});
+  const name=document.getElementById('input-rel-name').value.trim();
+  const role=document.getElementById('input-rel-role').value.trim();
+  const topic=document.getElementById('input-rel-topic').value.trim();
+  const date=document.getElementById('input-rel-date').value;
+  const time=document.getElementById('input-rel-time').value;
+  const location=document.getElementById('input-rel-location').value.trim();
+  const avatarSeed=document.getElementById('input-rel-avatar-seed').value || name;
+  const avatarStyle=document.getElementById('input-rel-avatar-style').value || 'adventurer';
+  if(!name||!role||!topic)return;
+  const meetings=[];
+  if(date) meetings.push({date,time,location});
+  appData.relations.push({id:`rel-${Date.now()}`,name,role,topic,avatarSeed,avatarStyle,meetings});
   renderRelations(); renderProfile(); initFuseSearch();
   document.getElementById('form-manual-rel').reset();
+  document.getElementById('input-rel-avatar-seed').value='';
+  document.getElementById('input-rel-avatar-style').value='adventurer';
+  refreshAvatarPicker('add');
+  openJsonExportModal();
   navTo('network');
 }
 function openEditRelationModal(relId){
-  const rel=appData.relations.find(r=>r.id===relId); if(!rel)return;
+  const rel=getRelation(relId); if(!rel)return;
   editingRelationId=relId;
   document.getElementById('edit-rel-name').value=rel.name;
   document.getElementById('edit-rel-role').value=rel.role;
   document.getElementById('edit-rel-topic').value=rel.topic;
-  document.getElementById('edit-rel-date').value=rel.meetDate || new Date().toISOString().slice(0,10);
-  document.getElementById('edit-rel-duration').value=rel.duration || '';
-  document.getElementById('edit-rel-progress').value=rel.progress||0;
+  document.getElementById('edit-rel-avatar-seed').value=rel.avatarSeed||rel.name;
+  document.getElementById('edit-rel-avatar-style').value=rel.avatarStyle||'adventurer';
+  const candidates=buildAvatarCandidates(rel.name);
+  // make sure current avatar is included as first option
+  candidates.unshift({style:rel.avatarStyle||'adventurer', seed:rel.avatarSeed||rel.name, url:peerAvatarUrl(rel.avatarSeed||rel.name, rel.avatarStyle||'adventurer')});
+  renderAvatarPicker('edit', candidates, rel.avatarSeed||rel.name, rel.avatarStyle||'adventurer');
   openModal('modal-edit-relation');
 }
 function saveEditRelation(e){
   e.preventDefault();
-  const rel=appData.relations.find(r=>r.id===editingRelationId); if(!rel)return;
-  rel.name=document.getElementById('edit-rel-name').value;
-  rel.role=document.getElementById('edit-rel-role').value;
-  rel.topic=document.getElementById('edit-rel-topic').value;
-  rel.meetDate=document.getElementById('edit-rel-date').value;
-  rel.duration=document.getElementById('edit-rel-duration').value.trim() || '-';
-  rel.progress=Math.max(0,Math.min(100,parseInt(document.getElementById('edit-rel-progress').value)||0));
-  closeModal('modal-edit-relation'); renderRelations(); initFuseSearch();
+  const rel=getRelation(editingRelationId); if(!rel)return;
+  rel.name=document.getElementById('edit-rel-name').value.trim()||rel.name;
+  rel.role=document.getElementById('edit-rel-role').value.trim();
+  rel.topic=document.getElementById('edit-rel-topic').value.trim();
+  rel.avatarSeed=document.getElementById('edit-rel-avatar-seed').value||rel.name;
+  rel.avatarStyle=document.getElementById('edit-rel-avatar-style').value||'adventurer';
+  closeModal('modal-edit-relation'); renderRelations(); initFuseSearch(); openJsonExportModal();
 }
 function deleteRelationFromModal(){
   if(!editingRelationId)return;
@@ -1447,6 +1656,7 @@ function generateMyQR(){
     if(note) note.classList.remove('hidden');
   }
 }
+function openQrModal(){ generateMyQR(); openModal('modal-qr'); }
 function switchRelTab(tab){
   const form=document.getElementById('form-manual-rel'); const boxScan=document.getElementById('box-scan-rel');
   if(tab==='manual'){
@@ -1463,7 +1673,7 @@ function switchRelTab(tab){
       try{
         const data=JSON.parse(text);
         if(data.name&&data.role){
-          appData.relations.push({id:`rel-${Date.now()}`,name:data.name,role:data.role,topic:data.topic||'General',meetDate:new Date().toISOString().slice(0,10),duration:'-',progress:0});
+          appData.relations.push({id:`rel-${Date.now()}`,name:data.name,role:data.role,topic:data.topic||'General',avatarSeed:data.name,avatarStyle:'adventurer',meetings:[{date:new Date().toISOString().slice(0,10),time:'',location:''}]});
           renderRelations(); renderProfile(); initFuseSearch();
           alert(`Relasi berhasil ditambahkan: ${data.name}`);
           html5QrcodeScanner.clear(); navTo('network');
@@ -1480,6 +1690,80 @@ function downloadJsonFile(){
   const blob=new Blob([JSON.stringify(appData,null,2)],{type:"application/json"});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download="data.json"; a.click();
+}
+
+// ---------- download menu (path view) ----------
+function toggleDownloadMenu(){
+  document.getElementById('download-menu').classList.toggle('hidden');
+}
+function buildFullPathHTML(plan){
+  const rows = plan.nodes.map((node,i)=>nodeRowHTML(node,i,plan)).join('');
+  return `<div style="position:relative;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <h2 style="font-family:'Playfair Display',serif;font-weight:800;font-size:24px;color:#0f172a;margin:0 0 4px;">${plan.title}</h2>
+      <p style="font-size:12px;color:#64748b;margin:0;">${plan.desc||''}</p>
+    </div>
+    <div class="path-line"></div>
+    <div style="display:flex;flex-direction:column;gap:40px;padding:16px 0;">${rows}</div>
+  </div>`;
+}
+async function downloadPlanPNG(){
+  if(!currentPlanId) return;
+  const plan=getPlan(currentPlanId);
+  if(!plan || plan.nodes.length===0){ alert('Belum ada topik untuk didownload.'); toggleDownloadMenu(); return; }
+  if(typeof html2canvas!=='function'){ alert('Gagal memuat modul PNG. Cek koneksi internet lalu coba lagi.'); toggleDownloadMenu(); return; }
+  toggleDownloadMenu();
+  const offscreen=document.createElement('div');
+  offscreen.style.cssText='position:fixed;left:-99999px;top:0;width:900px;background:#f3f1ea;padding:40px;';
+  offscreen.innerHTML=buildFullPathHTML(plan);
+  document.body.appendChild(offscreen);
+  try{
+    const canvas=await html2canvas(offscreen,{backgroundColor:'#f3f1ea',scale:2,useCORS:true});
+    const tileW=canvas.width;
+    const tileH=Math.round(tileW*3/4); // width:height = 4:3
+    const totalTiles=Math.max(1,Math.ceil(canvas.height/tileH));
+    for(let i=0;i<totalTiles;i++){
+      const tileCanvas=document.createElement('canvas');
+      tileCanvas.width=tileW; tileCanvas.height=tileH;
+      const ctx=tileCanvas.getContext('2d');
+      ctx.fillStyle='#f3f1ea'; ctx.fillRect(0,0,tileW,tileH);
+      const sourceH=Math.min(tileH, canvas.height-i*tileH);
+      ctx.drawImage(canvas,0,i*tileH,tileW,sourceH,0,0,tileW,sourceH);
+      const link=document.createElement('a');
+      link.download=`${plan.title.replace(/\s+/g,'_')}_peta_jalur_${i+1}_dari_${totalTiles}.png`;
+      link.href=tileCanvas.toDataURL('image/png');
+      document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+  }catch(err){
+    console.error(err);
+    alert('Gagal membuat PNG. Coba lagi.');
+  }finally{
+    document.body.removeChild(offscreen);
+  }
+}
+function downloadPlanNotesWord(){
+  if(!currentPlanId) return;
+  const plan=getPlan(currentPlanId);
+  toggleDownloadMenu();
+  if(!plan) return;
+  let body=`<h1 style="font-family:Calibri;">${plan.title}</h1><p>${plan.desc||''}</p>`;
+  if(plan.nodes.length===0){ body+='<p><i>Belum ada topik.</i></p>'; }
+  plan.nodes.forEach(node=>{
+    body+=`<h2 style="font-family:Calibri;">${node.title} <span style="font-size:11pt;color:#666;">(${node.status})</span></h2>`;
+    if(node.desc) body+=`<p style="color:#555;">${node.desc}</p>`;
+    if(node.notes.length===0){ body+='<p><i>Belum ada catatan.</i></p>'; }
+    node.notes.forEach(n=>{
+      body+=`<h3 style="font-family:Calibri;">${n.title} <span style="font-size:10pt;color:#999;">(${n.date})</span></h3>`;
+      body+=`<p>${(n.content||'').replace(/\n/g,'<br>')}</p>`;
+    });
+  });
+  const fullHtml=`<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+  <head><meta charset='utf-8'><title>${plan.title}</title></head><body>${body}</body></html>`;
+  const blob=new Blob(['\ufeff', fullHtml], {type:'application/msword'});
+  const link=document.createElement('a');
+  link.href=URL.createObjectURL(blob);
+  link.download=`${plan.title.replace(/\s+/g,'_')}_catatan.doc`;
+  document.body.appendChild(link); link.click(); document.body.removeChild(link);
 }
 
 // ---------- chat cepat ----------
@@ -1560,7 +1844,7 @@ function applyChatActions(actions){
         if(book){book.notes.push({id:`bn-${Date.now()}-${Math.floor(Math.random()*1000)}`,title:a.title||'Catatan',content:a.content||'',date:new Date().toISOString().slice(0,10)});}
         else warnings.push(`Buku "${a.bookTitle||''}" tidak ditemukan.`);
       } else if(a.type==='add_relation'){
-        appData.relations.push({id:`rel-${Date.now()}-${Math.floor(Math.random()*1000)}`,name:a.name||'Tanpa nama',role:a.role||'',topic:a.topic||'',meetDate:new Date().toISOString().slice(0,10),duration:'-',progress:0});
+        appData.relations.push({id:`rel-${Date.now()}-${Math.floor(Math.random()*1000)}`,name:a.name||'Tanpa nama',role:a.role||'',topic:a.topic||'',avatarSeed:a.name||'peer',avatarStyle:'adventurer',meetings:[]});
       }
     }catch(err){warnings.push('Terjadi error saat memproses salah satu aksi.');}
   });
